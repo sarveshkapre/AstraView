@@ -93,3 +93,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Header data health badge for live/cache/fallback state.
+
+## [0.9.8] - 2026-02-04
+
+### Added
+- Legend for object type and data source colors.

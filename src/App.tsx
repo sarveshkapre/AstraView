@@ -800,6 +800,39 @@ const App = () => {
               <div className="empty-state">Click an object to inspect details.</div>
             )}
           </section>
+          <section className="legend">
+            <div className="section-title">Legend</div>
+            <div className="legend-group">
+              <div className="legend-label">Object Type</div>
+              <div className="legend-items">
+                <div className="legend-item">
+                  <span className="dot payload" />
+                  Payload
+                </div>
+                <div className="legend-item">
+                  <span className="dot rocket" />
+                  Rocket Body
+                </div>
+                <div className="legend-item">
+                  <span className="dot debris" />
+                  Debris
+                </div>
+              </div>
+            </div>
+            <div className="legend-group">
+              <div className="legend-label">Data Source</div>
+              <div className="legend-items">
+                <div className="legend-item">
+                  <span className="dot live" />
+                  Live TLE
+                </div>
+                <div className="legend-item">
+                  <span className="dot synthetic" />
+                  Synthetic
+                </div>
+              </div>
+            </div>
+          </section>
           <section className="share">
             <div className="section-title">Share View</div>
             <p>Copy a link that recreates your filters, camera, and selection.</p>

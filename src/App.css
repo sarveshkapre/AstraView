@@ -540,6 +540,69 @@ body {
   font-size: 0.85rem;
 }
 
+.legend {
+  background: rgba(12, 18, 32, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  padding: 0.9rem;
+}
+
+.legend-group + .legend-group {
+  margin-top: 0.8rem;
+}
+
+.legend-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+}
+
+.legend-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.legend-item .payload {
+  background: #4ade80;
+}
+
+.legend-item .rocket {
+  background: #fbbf24;
+}
+
+.legend-item .debris {
+  background: #fb7185;
+}
+
+.legend-item .live {
+  background: #38bdf8;
+}
+
+.legend-item .synthetic {
+  background: #94a3b8;
+}
+
 button.ghost {
   background: transparent;
   border: 1px solid rgba(148, 163, 184, 0.4);

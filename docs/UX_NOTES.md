@@ -18,6 +18,7 @@
 - Data coverage section shows live vs synthetic counts.
 - Skipped TLE entries surface as a small warning under coverage.
 - Data health badge shows live/cache/fallback state at a glance.
+- Legend clarifies color encodings for type and source.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

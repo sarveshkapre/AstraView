@@ -11,3 +11,11 @@ All notable changes to this project will be documented in this file.
 - 3D globe rendering with live motion, hover tooltips, selection orbit path, and focus.
 - URL state encoding for filters, camera, time mode, and selection.
 - Product documentation in `docs/`.
+
+## [0.2.0] - 2026-02-04
+
+### Added
+- Zoom-aware density mode with down-sampling and improved point sizing.
+- Loading overlay for initial globe setup.
+- Freshness indicator with offline cached dataset messaging.
+- Search result prioritization for exact name/NORAD matches.

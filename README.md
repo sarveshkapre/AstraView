@@ -15,6 +15,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Hover tooltips and click-to-inspect detail panel with orbit path.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
+- Zoom-aware density mode with offline-safe cached dataset indicator.
 
 ## Tech Stack
 

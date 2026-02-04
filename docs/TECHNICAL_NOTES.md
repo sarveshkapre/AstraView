@@ -14,5 +14,6 @@
 - URL state is updated via `history.replaceState`.
 
 ## Performance
-- Density mode reduces point size when object count is high.
+- Density mode reduces point size and down-samples when zoomed out or when object count is high.
+- Offline detection keeps the cached dataset visible with a freshness indicator.
 - Simple seeded generator ensures repeatable dataset without network dependency.

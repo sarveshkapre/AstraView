@@ -61,6 +61,11 @@ const App = () => {
   const [timeSeconds, setTimeSeconds] = useState(0)
   const [viewState, setViewState] = useState<ViewState | undefined>(undefined)
   const [focusObject, setFocusObject] = useState<OrbitObject | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date>(() => new Date())
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine : true,
+  )
 
   useEffect(() => {
     const urlState = parseUrlState()
@@ -76,6 +81,27 @@ const App = () => {
     if (urlState.time) setTimeState(urlState.time)
     if (urlState.view) setViewState(urlState.view)
   }, [objects])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsLoading(false), 700)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    const updateOnline = () => setIsOnline(navigator.onLine)
+    window.addEventListener('online', updateOnline)
+    window.addEventListener('offline', updateOnline)
+    return () => {
+      window.removeEventListener('online', updateOnline)
+      window.removeEventListener('offline', updateOnline)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isOnline) return undefined
+    const interval = window.setInterval(() => setLastUpdated(new Date()), 5000)
+    return () => window.clearInterval(interval)
+  }, [isOnline])
 
   useEffect(() => {
     let frame = 0
@@ -102,6 +128,7 @@ const App = () => {
   }, [objects])
 
   const filteredObjects = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase()
     return objects.filter((object) => {
       if (filters.regimes.size && !filters.regimes.has(object.regime)) return false
       if (filters.types.size && !filters.types.has(object.type)) return false
@@ -110,19 +137,29 @@ const App = () => {
       }
       if (filters.constellations.size && !object.constellation) return false
       if (!altitudeInBand(object.altitudeKm, filters.altitudeBand)) return false
-      if (searchTerm) {
-        const target = `${object.name} ${object.noradId} ${object.constellation ?? ''} ${object.operator ?? ''}`.toLowerCase()
-        if (!target.includes(searchTerm.toLowerCase())) return false
+      if (query) {
+        const name = object.name.toLowerCase()
+        const id = object.noradId.toString()
+        if (name === query || id === query) return true
+        const target = `${name} ${object.constellation ?? ''} ${object.operator ?? ''}`.toLowerCase()
+        if (!target.includes(query)) return false
       }
       return true
     })
   }, [filters, objects, searchTerm])
 
   const clustersEnabled = filteredObjects.length > 1500
+  const cameraDistance = viewState?.distance ?? 3.2
+  const zoomDensity = cameraDistance > 4.3 ? 3 : cameraDistance > 3.4 ? 2 : 1
+  const densityStep = Math.max(1, clustersEnabled ? zoomDensity * 2 : zoomDensity)
   const displayObjects = useMemo(() => {
-    if (!clustersEnabled) return filteredObjects
-    return filteredObjects.filter((_, index) => index % 2 === 0)
-  }, [clustersEnabled, filteredObjects])
+    let list =
+      densityStep === 1 ? filteredObjects : filteredObjects.filter((_, index) => index % densityStep === 0)
+    if (selected && !list.some((object) => object.id === selected.id)) {
+      list = [selected, ...list]
+    }
+    return list
+  }, [densityStep, filteredObjects, selected])
 
   const breakdown = useMemo(() => {
     const counts = {
@@ -148,6 +185,13 @@ const App = () => {
   }, [filteredObjects, selected])
 
   useEffect(() => {
+    if (selected && !filteredObjects.some((object) => object.id === selected.id)) {
+      setSelected(null)
+      setFocusObject(null)
+    }
+  }, [filteredObjects, selected])
+
+  useEffect(() => {
     serializeUrlState({
       filters,
       selectedId: selected?.id,
@@ -158,8 +202,17 @@ const App = () => {
   }, [filters, searchTerm, selected, viewState, timeState])
 
   const searchResults = useMemo(() => {
-    if (!searchTerm.trim()) return []
-    return filteredObjects.slice(0, 6)
+    const query = searchTerm.trim().toLowerCase()
+    if (!query) return []
+    const exact = filteredObjects.filter(
+      (object) =>
+        object.name.toLowerCase() === query || object.noradId.toString() === query,
+    )
+    const remainder = filteredObjects.filter(
+      (object) =>
+        object.name.toLowerCase() !== query && object.noradId.toString() !== query,
+    )
+    return [...exact, ...remainder].slice(0, 6)
   }, [filteredObjects, searchTerm])
 
   const handleSelect = (object: OrbitObject | null) => {
@@ -391,7 +444,12 @@ const App = () => {
             </div>
             <div className="trust-item">
               <strong>Freshness</strong>
-              <p>Simulated live feed. Refresh cadence: every 5 seconds.</p>
+              <p>
+                {isOnline ? 'Live feed active.' : 'Offline mode. Using cached dataset.'} Last
+                refreshed:{' '}
+                {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.
+                Refresh cadence: every 5 seconds.
+              </p>
             </div>
             <div className="trust-item">
               <strong>Limitations</strong>
@@ -410,8 +468,14 @@ const App = () => {
             onViewChange={(view) => setViewState(view)}
             focusObject={focusObject}
             initialView={viewState}
-            pointSize={clustersEnabled ? 0.018 : 0.022}
+            pointSize={densityStep > 2 ? 0.016 : densityStep > 1 ? 0.018 : 0.022}
           />
+          {isLoading && (
+            <div className="loading">
+              <div className="loading-title">Initializing live orbits</div>
+              <div className="loading-subtitle">Rendering globe and motion paths...</div>
+            </div>
+          )}
           {hovered && hoverPosition && (
             <div
               className="tooltip"
@@ -436,7 +500,9 @@ const App = () => {
               </div>
             </div>
             <div className="cluster-hint">
-              {clustersEnabled ? 'Density mode enabled for performance.' : 'Full object mode.'}
+              {densityStep > 1
+                ? `Density mode: showing 1 of ${densityStep} objects`
+                : 'Full object mode.'}
             </div>
           </div>
         </section>

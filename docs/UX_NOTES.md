@@ -10,6 +10,7 @@
 - Search and filters update instantly.
 - Hover = tooltip, click = selection + orbit path.
 - Loading overlay appears briefly on startup to confirm activity.
+- Time scrubber allows manual inspection of a fixed window.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

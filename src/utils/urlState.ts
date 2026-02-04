@@ -40,11 +40,16 @@ export const parseUrlState = (): UrlState => {
 
   const timeMode = params.get('tm')
   const pausedAtSec = Number(params.get('tt'))
-  const time: TimeState | undefined = timeMode === 'p' && !Number.isNaN(pausedAtSec)
-    ? { mode: 'paused', pausedAtSec }
-    : timeMode === 'l'
-      ? { mode: 'live' }
-      : undefined
+  const speed = Number(params.get('sp'))
+  const speedValue = !Number.isNaN(speed) && speed > 0 ? speed : undefined
+  const time: TimeState | undefined =
+    timeMode === 'p' && !Number.isNaN(pausedAtSec)
+      ? { mode: 'paused', pausedAtSec, speed: speedValue }
+      : timeMode === 'l'
+        ? { mode: 'live', speed: speedValue }
+        : speedValue
+          ? { mode: 'live', speed: speedValue }
+          : undefined
 
   const filters: FiltersState = {
     regimes: new Set(regimes),
@@ -88,6 +93,9 @@ export const serializeUrlState = (state: UrlState) => {
     params.set('tm', state.time.mode === 'paused' ? 'p' : 'l')
     if (state.time.mode === 'paused' && state.time.pausedAtSec) {
       params.set('tt', Math.round(state.time.pausedAtSec).toString())
+    }
+    if (state.time.speed && state.time.speed !== 1) {
+      params.set('sp', state.time.speed.toString())
     }
   }
 

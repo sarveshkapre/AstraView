@@ -19,3 +19,10 @@ All notable changes to this project will be documented in this file.
 - Loading overlay for initial globe setup.
 - Freshness indicator with offline cached dataset messaging.
 - Search result prioritization for exact name/NORAD matches.
+
+## [0.3.0] - 2026-02-04
+
+### Added
+- Time scrubber and playback speed controls.
+- Orbit trail rendering for selected objects.
+- Slow Earth rotation for motion context.

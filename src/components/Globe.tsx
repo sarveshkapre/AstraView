@@ -89,12 +89,14 @@ const Globe = ({
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const controlsRef = useRef<OrbitControls | null>(null)
+  const earthGroupRef = useRef<THREE.Group | null>(null)
   const pointsRef = useRef<THREE.Points | null>(null)
   const geometryRef = useRef<THREE.BufferGeometry | null>(null)
   const objectsRef = useRef<OrbitObject[]>([])
   const hoverRef = useRef<OrbitObject | null>(null)
   const timeRef = useRef<number>(timeSeconds)
   const orbitLineRef = useRef<THREE.Line | null>(null)
+  const trailLineRef = useRef<THREE.Line | null>(null)
   const selectedMarkerRef = useRef<THREE.Mesh | null>(null)
   const hoverMarkerRef = useRef<THREE.Mesh | null>(null)
 
@@ -153,6 +155,9 @@ const Globe = ({
     const stars = createStars()
     const grid = createLatLong()
 
+    const earthGroup = new THREE.Group()
+    earthGroup.add(earth, atmosphere, grid)
+
     const hoverMarker = new THREE.Mesh(
       new THREE.SphereGeometry(0.02, 16, 16),
       new THREE.MeshBasicMaterial({ color: '#f8fafc' }),
@@ -165,12 +170,13 @@ const Globe = ({
     )
     selectedMarker.visible = false
 
-    scene.add(stars, earth, atmosphere, grid, ambient, key, rim, hoverMarker, selectedMarker)
+    scene.add(stars, earthGroup, ambient, key, rim, hoverMarker, selectedMarker)
 
     sceneRef.current = scene
     cameraRef.current = camera
     rendererRef.current = renderer
     controlsRef.current = controls
+    earthGroupRef.current = earthGroup
     hoverMarkerRef.current = hoverMarker
     selectedMarkerRef.current = selectedMarker
 
@@ -262,6 +268,10 @@ const Globe = ({
         geometryRef.current.attributes.position.needsUpdate = true
       }
 
+      if (earthGroupRef.current) {
+        earthGroupRef.current.rotation.y = timeRef.current * 0.03
+      }
+
       if (selectedMarkerRef.current && selectedId) {
         const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
         if (selectedObject) {
@@ -270,6 +280,24 @@ const Globe = ({
           selectedMarkerRef.current.visible = true
         } else {
           selectedMarkerRef.current.visible = false
+        }
+      }
+
+      if (trailLineRef.current && selectedId) {
+        const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
+        if (selectedObject) {
+          const positions = trailLineRef.current.geometry.attributes.position.array as Float32Array
+          const segments = positions.length / 3
+          const trailSeconds = 1800
+          for (let i = 0; i < segments; i += 1) {
+            const t = timeRef.current - (trailSeconds * (segments - 1 - i)) / (segments - 1)
+            const pos = positionForObject(selectedObject, t)
+            const offset = i * 3
+            positions[offset] = pos.x
+            positions[offset + 1] = pos.y
+            positions[offset + 2] = pos.z
+          }
+          trailLineRef.current.geometry.attributes.position.needsUpdate = true
         }
       }
 
@@ -341,6 +369,13 @@ const Globe = ({
       ;(orbitLineRef.current.material as THREE.Material).dispose()
     }
 
+    if (trailLineRef.current) {
+      sceneRef.current.remove(trailLineRef.current)
+      trailLineRef.current.geometry.dispose()
+      ;(trailLineRef.current.material as THREE.Material).dispose()
+      trailLineRef.current = null
+    }
+
     if (!selectedId) return
     const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
     if (!selectedObject) return
@@ -350,6 +385,15 @@ const Globe = ({
     const line = new THREE.LineLoop(geometry, material)
     orbitLineRef.current = line
     sceneRef.current.add(line)
+
+    const trailSegments = 90
+    const trailPositions = new Float32Array(trailSegments * 3)
+    const trailGeometry = new THREE.BufferGeometry()
+    trailGeometry.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3))
+    const trailMaterial = new THREE.LineBasicMaterial({ color: '#fbbf24', transparent: true, opacity: 0.45 })
+    const trailLine = new THREE.Line(trailGeometry, trailMaterial)
+    trailLineRef.current = trailLine
+    sceneRef.current.add(trailLine)
   }, [selectedId])
 
   useEffect(() => {

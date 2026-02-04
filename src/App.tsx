@@ -57,7 +57,7 @@ const App = () => {
   const [selected, setSelected] = useState<OrbitObject | null>(null)
   const [hovered, setHovered] = useState<OrbitObject | null>(null)
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null)
-  const [timeState, setTimeState] = useState<TimeState>({ mode: 'live' })
+  const [timeState, setTimeState] = useState<TimeState>({ mode: 'live', speed: 1 })
   const [timeSeconds, setTimeSeconds] = useState(0)
   const [viewState, setViewState] = useState<ViewState | undefined>(undefined)
   const [focusObject, setFocusObject] = useState<OrbitObject | null>(null)
@@ -109,8 +109,9 @@ const App = () => {
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick)
       const elapsed = (now - start) / 1000
+      const speed = timeState.speed ?? 1
       if (timeState.mode === 'live') {
-        setTimeSeconds(elapsed)
+        setTimeSeconds(elapsed * speed)
       } else if (timeState.pausedAtSec !== undefined) {
         setTimeSeconds(timeState.pausedAtSec)
       }
@@ -274,14 +275,23 @@ const App = () => {
   const handleTimeToggle = () => {
     setTimeState((prev) => {
       if (prev.mode === 'live') {
-        return { mode: 'paused', pausedAtSec: timeSeconds }
+        const nextPaused = Math.min(timeSeconds, 6000)
+        return { mode: 'paused', pausedAtSec: nextPaused, speed: prev.speed ?? 1 }
       }
-      return { mode: 'live' }
+      return { mode: 'live', speed: prev.speed ?? 1 }
     })
   }
 
   const handleNow = () => {
-    setTimeState({ mode: 'live' })
+    setTimeState((prev) => ({ mode: 'live', speed: prev.speed ?? 1 }))
+  }
+
+  const handleScrub = (value: number) => {
+    setTimeState((prev) => ({ mode: 'paused', pausedAtSec: value, speed: prev.speed ?? 1 }))
+  }
+
+  const handleSpeedChange = (value: number) => {
+    setTimeState((prev) => ({ ...prev, speed: value }))
   }
 
   const handleHover = (object: OrbitObject | null, screen: { x: number; y: number } | null) => {
@@ -497,6 +507,32 @@ const App = () => {
               </button>
               <div className="timestamp">
                 Mode: {timeState.mode === 'live' ? 'Live' : 'Paused'} · t+{timeSeconds.toFixed(0)}s
+              </div>
+            </div>
+            <div className="time-scrub">
+              <div className="scrub-label">Scrub (0-100 min)</div>
+              <input
+                type="range"
+                min={0}
+                max={6000}
+                step={10}
+                value={Math.min(timeSeconds, 6000)}
+                onChange={(event) => handleScrub(Number(event.target.value))}
+                disabled={timeState.mode === 'live'}
+                aria-label="Scrub orbit time"
+              />
+              <div className="scrub-label">Speed</div>
+              <div className="speed-buttons">
+                {[0.5, 1, 2, 5].map((speed) => (
+                  <button
+                    key={speed}
+                    type="button"
+                    className={`chip ${timeState.speed === speed ? 'active' : ''}`}
+                    onClick={() => handleSpeedChange(speed)}
+                  >
+                    {speed}x
+                  </button>
+                ))}
               </div>
             </div>
             <div className="cluster-hint">

@@ -13,6 +13,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Search by name, NORAD ID, constellation, or operator keyword.
 - Filters for regime, object type, constellation, and altitude bands.
 - Hover tooltips and click-to-inspect detail panel with orbit path.
+- Orbit trail history and slow Earth rotation for motion context.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

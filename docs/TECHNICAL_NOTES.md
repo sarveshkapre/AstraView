@@ -3,7 +3,8 @@
 ## Rendering
 - Three.js scene with Earth sphere, atmosphere halo, starfield, and lat/long grid.
 - Objects rendered as a single `Points` buffer with per-vertex colors.
-- Orbit path rendered when a selection is active.
+- Orbit path and trailing path rendered when a selection is active.
+- Earth group rotates slowly for a sense of motion.
 
 ## Data Model
 - Synthetic orbital object generator in `src/data/orbitalObjects.ts`.

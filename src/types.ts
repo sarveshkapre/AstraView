@@ -35,4 +35,5 @@ export type ViewState = {
 export type TimeState = {
   mode: 'live' | 'paused'
   pausedAtSec?: number
+  speed?: number
 }

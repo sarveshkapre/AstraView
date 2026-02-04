@@ -324,6 +324,36 @@ body {
   font-size: 0.8rem;
 }
 
+.time-scrub {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.75rem;
+}
+
+.time-scrub input[type='range'] {
+  width: 220px;
+}
+
+.time-scrub input[type='range']:disabled {
+  opacity: 0.4;
+}
+
+.scrub-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.speed-buttons {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
 .time-controls button {
   background: var(--accent);
   color: #05070f;

@@ -95,6 +95,8 @@ const App = () => {
   const [globeCommand, setGlobeCommand] = useState<'reset' | 'earth' | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const helpButtonRef = useRef<HTMLButtonElement | null>(null)
+  const lastFocusRef = useRef<HTMLElement | null>(null)
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
@@ -463,8 +465,18 @@ const App = () => {
 
   useEffect(() => {
     if (!showShortcuts) return
+    lastFocusRef.current = document.activeElement as HTMLElement | null
     const card = document.querySelector<HTMLDivElement>('.shortcut-card')
     card?.focus()
+  }, [showShortcuts])
+
+  useEffect(() => {
+    if (showShortcuts) return
+    if (helpButtonRef.current) {
+      helpButtonRef.current.focus()
+      return
+    }
+    lastFocusRef.current?.focus?.()
   }, [showShortcuts])
 
   const handleRefreshData = async () => {
@@ -600,6 +612,7 @@ const App = () => {
             className="help-button"
             onClick={() => setShowShortcuts(true)}
             aria-label="Open keyboard shortcuts"
+            ref={helpButtonRef}
           >
             ?
           </button>

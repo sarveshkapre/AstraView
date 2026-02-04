@@ -123,3 +123,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Accessibility improvements for help button and shortcut dialog focus.
+
+## [1.0.4] - 2026-02-04
+
+### Added
+- Focus restoration to help button after closing shortcuts dialog.

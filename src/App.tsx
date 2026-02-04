@@ -37,9 +37,14 @@ const defaultFilters = (): FiltersState => ({
   types: new Set(ALL_TYPES),
   constellations: new Set(),
   altitudeBand: 'All',
+  dataset: 'all',
 })
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
+const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
+  all: 'All cataloged objects',
+  payloads: 'Satellites (payloads only)',
+}
 
 const getActiveFiltersCount = (filters: FiltersState) => {
   let count = 0
@@ -47,6 +52,7 @@ const getActiveFiltersCount = (filters: FiltersState) => {
   if (filters.constellations.size > 0) count += filters.constellations.size
   if (filters.regimes.size !== ALL_REGIMES.length) count += filters.regimes.size
   if (filters.types.size !== ALL_TYPES.length) count += filters.types.size
+  if (filters.dataset !== 'all') count += 1
   return count
 }
 
@@ -131,6 +137,7 @@ const App = () => {
   const filteredObjects = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     return objects.filter((object) => {
+      if (filters.dataset === 'payloads' && object.type !== 'Payload') return false
       if (filters.regimes.size && !filters.regimes.has(object.regime)) return false
       if (filters.types.size && !filters.types.has(object.type)) return false
       if (filters.constellations.size && object.constellation && !filters.constellations.has(object.constellation)) {
@@ -258,6 +265,14 @@ const App = () => {
     })
   }
 
+  const handleDatasetChange = (dataset: FiltersState['dataset']) => {
+    setFilters((prev) => ({
+      ...prev,
+      dataset,
+      types: dataset === 'payloads' ? new Set<OrbitType>(['Payload']) : new Set(ALL_TYPES),
+    }))
+  }
+
   const handleResetFilters = () => {
     setFilters(defaultFilters())
     setSearchTerm('')
@@ -372,6 +387,21 @@ const App = () => {
           <section>
             <div className="section-title">Filters</div>
             <div className="filter-group">
+              <div className="filter-label">Dataset</div>
+              <div className="chips">
+                {(['all', 'payloads'] as FiltersState['dataset'][]).map((dataset) => (
+                  <button
+                    key={dataset}
+                    className={`chip ${filters.dataset === dataset ? 'active' : ''}`}
+                    onClick={() => handleDatasetChange(dataset)}
+                    type="button"
+                  >
+                    {dataset === 'all' ? 'All Objects' : 'Satellites Only'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="filter-group">
               <div className="filter-label">Orbit Regime</div>
               <div className="chips">
                 {ALL_REGIMES.map((regime) => (
@@ -404,6 +434,7 @@ const App = () => {
                         types: toggleFilter(prev.types, type, ALL_TYPES),
                       }))
                     }
+                    disabled={filters.dataset === 'payloads' && type !== 'Payload'}
                     type="button"
                   >
                     {type}
@@ -448,8 +479,8 @@ const App = () => {
             <div className="trust-item">
               <strong>Definitions</strong>
               <p>
-                Includes payloads, rocket bodies, and cataloged debris. Demo data is synthetic but
-                structured to reflect typical orbital regimes.
+                {DATASET_LABELS[filters.dataset]}. Demo data is synthetic but structured to reflect
+                typical orbital regimes.
               </p>
             </div>
             <div className="trust-item">

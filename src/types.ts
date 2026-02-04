@@ -24,6 +24,7 @@ export type FiltersState = {
   types: Set<OrbitType>
   constellations: Set<string>
   altitudeBand: AltitudeBand
+  dataset: 'all' | 'payloads'
 }
 
 export type ViewState = {

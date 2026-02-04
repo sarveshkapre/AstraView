@@ -36,3 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Earth day/night textures with normal mapping and tone-mapped rendering.
+
+## [0.6.0] - 2026-02-04
+
+### Added
+- Dataset toggle for payloads-only vs all cataloged objects.

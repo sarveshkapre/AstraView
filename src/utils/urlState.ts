@@ -30,6 +30,7 @@ export const parseUrlState = (): UrlState => {
   const types = parseList(params.get('t')) as OrbitType[]
   const constellations = parseList(params.get('c'))
   const altitudeBand = params.get('a')
+  const dataset = params.get('ds') === 'p' ? 'payloads' : 'all'
   const search = params.get('q') ?? undefined
   const selectedId = params.get('s')
 
@@ -56,6 +57,11 @@ export const parseUrlState = (): UrlState => {
     types: new Set(types),
     constellations: new Set(constellations),
     altitudeBand: (altitudeBand as FiltersState['altitudeBand']) ?? 'All',
+    dataset,
+  }
+
+  if (filters.dataset === 'payloads' && !filters.types.has('Payload')) {
+    filters.types = new Set<OrbitType>(['Payload'])
   }
 
   return {
@@ -77,6 +83,9 @@ export const serializeUrlState = (state: UrlState) => {
     if (state.filters.constellations.size > 0) params.set('c', [...state.filters.constellations].join(','))
     if (state.filters.altitudeBand && state.filters.altitudeBand !== 'All') {
       params.set('a', state.filters.altitudeBand)
+    }
+    if (state.filters.dataset && state.filters.dataset !== 'all') {
+      params.set('ds', 'p')
     }
   }
 

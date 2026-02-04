@@ -10,6 +10,7 @@
 ## Data Model
 - Synthetic orbital object generator in `src/data/orbitalObjects.ts`.
 - Each object includes regime, type, altitude, inclination, mean anomaly, RAAN, and metadata fields.
+- Dataset toggle in UI filters payloads-only vs all objects without a second dataset.
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.

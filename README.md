@@ -12,6 +12,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Counts and breakdowns by orbit regime (LEO/MEO/GEO) and object type.
 - Search by name, NORAD ID, constellation, or operator keyword.
 - Filters for regime, object type, constellation, and altitude bands.
+- Dataset toggle for payloads-only vs all cataloged objects.
 - Hover tooltips and click-to-inspect detail panel with orbit path.
 - Orbit trail history and slow Earth rotation for motion context.
 - Day/night terminator glow and shader-based night lights.

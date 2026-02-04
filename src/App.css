@@ -222,6 +222,11 @@ body {
   border-color: rgba(56, 189, 248, 0.6);
 }
 
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .constellations {
   display: flex;
   flex-wrap: wrap;

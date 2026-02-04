@@ -113,3 +113,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Keyboard shortcut overlay and bindings.
+
+## [1.0.2] - 2026-02-04
+
+### Added
+- Header help button for shortcuts overlay.

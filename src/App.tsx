@@ -584,6 +584,13 @@ const App = () => {
                   ? 'Fallback'
                   : 'Idle'}
           </div>
+          <button
+            type="button"
+            className="help-button"
+            onClick={() => setShowShortcuts(true)}
+          >
+            ?
+          </button>
           <div className="counts">
             <span>{formatNumber(filteredObjects.length)} objects</span>
             <span>LEO {formatNumber(breakdown.LEO)}</span>

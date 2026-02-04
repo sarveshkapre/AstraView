@@ -58,3 +58,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Live TLE ingestion with caching and TLE-based propagation.
 - Data source + freshness age surfaced in the trust panel.
+
+## [0.9.1] - 2026-02-04
+
+### Changed
+- Clarified freshness messaging when live data is unavailable.

@@ -276,7 +276,11 @@ const App = () => {
     return [...exact, ...remainder].slice(0, 6)
   }, [filteredObjects, searchTerm])
 
-  const dataAgeSec = Math.max(0, Math.floor((nowTick - lastUpdated.getTime()) / 1000))
+  const hasFreshness = tleStatus === 'ready'
+  const dataAgeSec = hasFreshness ? Math.max(0, Math.floor((nowTick - lastUpdated.getTime()) / 1000)) : 0
+  const lastUpdatedLabel = hasFreshness
+    ? lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    : 'Unknown'
   const dataSourceLabel =
     tleStatus === 'ready'
       ? filters.dataset === 'payloads'
@@ -569,9 +573,8 @@ const App = () => {
               <strong>Freshness</strong>
               <p>
                 {isOnline ? 'Online.' : 'Offline mode. Using cached dataset.'} {dataStatusLabel}
-                Last refreshed:{' '}
-                {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ·
-                Age: {formatAge(dataAgeSec)}.
+                Last refreshed: {lastUpdatedLabel}
+                {hasFreshness ? ` · Age: ${formatAge(dataAgeSec)}.` : '.'}
               </p>
             </div>
             <div className="trust-item">

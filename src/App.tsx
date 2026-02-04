@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
+import { loadActiveTleObjects } from './data/tleSource'
 import type {
   OrbitObject,
   FiltersState,
@@ -47,6 +48,14 @@ const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
   payloads: 'Satellites (payloads only)',
 }
 
+const formatAge = (seconds: number) => {
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  return `${hours}h`
+}
+
 const getActiveFiltersCount = (filters: FiltersState) => {
   let count = 0
   if (filters.altitudeBand !== 'All') count += 1
@@ -58,7 +67,9 @@ const getActiveFiltersCount = (filters: FiltersState) => {
 }
 
 const App = () => {
-  const [objects] = useState(() => generateObjects(58))
+  const syntheticObjects = useMemo(() => generateObjects(58), [])
+  const [tleObjects, setTleObjects] = useState<OrbitObject[]>([])
+  const [tleStatus, setTleStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
@@ -75,21 +86,18 @@ const App = () => {
   )
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<number | null>(null)
+  const [nowTick, setNowTick] = useState(() => Date.now())
+
+  const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
   useEffect(() => {
     const urlState = parseUrlState()
     if (urlState.filters) setFilters(urlState.filters)
     if (urlState.search) setSearchTerm(urlState.search)
-    if (urlState.selectedId) {
-      const match = objects.find((object) => object.id === urlState.selectedId)
-      if (match) {
-        setSelected(match)
-        setFocusObject(match)
-      }
-    }
+    if (urlState.selectedId) setPendingSelectedId(urlState.selectedId)
     if (urlState.time) setTimeState(urlState.time)
     if (urlState.view) setViewState(urlState.view)
-  }, [objects])
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsLoading(false), 700)
@@ -107,10 +115,30 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    if (!isOnline) return undefined
-    const interval = window.setInterval(() => setLastUpdated(new Date()), 5000)
+    const interval = window.setInterval(() => setNowTick(Date.now()), 5000)
     return () => window.clearInterval(interval)
-  }, [isOnline])
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setTleStatus('loading')
+      try {
+        const result = await loadActiveTleObjects()
+        if (cancelled) return
+        setTleObjects(result.objects)
+        setLastUpdated(result.fetchedAt)
+        setTleStatus('ready')
+      } catch {
+        if (cancelled) return
+        setTleStatus('error')
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     let frame = 0
@@ -129,17 +157,39 @@ const App = () => {
     return () => cancelAnimationFrame(frame)
   }, [timeState])
 
+  const baseObjects = useMemo(() => {
+    if (filters.dataset === 'payloads') {
+      if (tleObjects.length > 0) return tleObjects
+      return syntheticObjects.filter((object) => object.type === 'Payload')
+    }
+    if (tleObjects.length > 0) {
+      const nonPayloads = syntheticObjects.filter((object) => object.type !== 'Payload')
+      return [...tleObjects, ...nonPayloads]
+    }
+    return syntheticObjects
+  }, [filters.dataset, syntheticObjects, tleObjects])
+
+  useEffect(() => {
+    if (!pendingSelectedId || selected) return
+    const match = baseObjects.find((object) => object.id === pendingSelectedId || object.noradId.toString() === pendingSelectedId)
+    if (match) {
+      setSelected(match)
+      setFocusObject(match)
+      setPendingSelectedId(null)
+    }
+  }, [baseObjects, pendingSelectedId, selected])
+
   const constellations = useMemo(() => {
     const set = new Set<string>()
-    objects.forEach((object) => {
+    baseObjects.forEach((object) => {
       if (object.constellation) set.add(object.constellation)
     })
     return [...set].sort()
-  }, [objects])
+  }, [baseObjects])
 
   const filteredObjects = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
-    return objects.filter((object) => {
+    return baseObjects.filter((object) => {
       if (filters.dataset === 'payloads' && object.type !== 'Payload') return false
       if (filters.regimes.size && !filters.regimes.has(object.regime)) return false
       if (filters.types.size && !filters.types.has(object.type)) return false
@@ -157,7 +207,7 @@ const App = () => {
       }
       return true
     })
-  }, [filters, objects, searchTerm])
+  }, [baseObjects, filters, searchTerm])
 
   const clustersEnabled = filteredObjects.length > 1500
   const cameraDistance = viewState?.distance ?? 3.2
@@ -225,6 +275,20 @@ const App = () => {
     )
     return [...exact, ...remainder].slice(0, 6)
   }, [filteredObjects, searchTerm])
+
+  const dataAgeSec = Math.max(0, Math.floor((nowTick - lastUpdated.getTime()) / 1000))
+  const dataSourceLabel =
+    tleStatus === 'ready'
+      ? filters.dataset === 'payloads'
+        ? 'CelesTrak active satellites (TLE)'
+        : 'CelesTrak active satellites + synthetic non-payloads'
+      : 'Synthetic demo catalog'
+  const dataStatusLabel =
+    tleStatus === 'loading'
+      ? 'Fetching live TLE...'
+      : tleStatus === 'error'
+        ? 'Live fetch failed, using cached or demo data.'
+        : 'Live catalog ready.'
 
   const handleSelect = (object: OrbitObject | null) => {
     setSelected(object)
@@ -491,17 +555,23 @@ const App = () => {
             <div className="trust-item">
               <strong>Definitions</strong>
               <p>
-                {DATASET_LABELS[filters.dataset]}. Demo data is synthetic but structured to reflect
-                typical orbital regimes.
+                {DATASET_LABELS[filters.dataset]}.{' '}
+                {filters.dataset === 'payloads'
+                  ? 'Payloads use live TLE when available, with synthetic fallback if offline.'
+                  : 'Payloads use live TLE when available; synthetic data fills non-payload categories.'}
               </p>
+            </div>
+            <div className="trust-item">
+              <strong>Data Source</strong>
+              <p>{dataSourceLabel}</p>
             </div>
             <div className="trust-item">
               <strong>Freshness</strong>
               <p>
-                {isOnline ? 'Live feed active.' : 'Offline mode. Using cached dataset.'} Last
-                refreshed:{' '}
-                {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}.
-                Refresh cadence: every 5 seconds.
+                {isOnline ? 'Online.' : 'Offline mode. Using cached dataset.'} {dataStatusLabel}
+                Last refreshed:{' '}
+                {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ·
+                Age: {formatAge(dataAgeSec)}.
               </p>
             </div>
             <div className="trust-item">

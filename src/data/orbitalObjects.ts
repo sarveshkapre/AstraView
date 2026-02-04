@@ -115,6 +115,7 @@ export const generateObjects = (seed = 42): OrbitObject[] => {
         constellation,
         launchDate: `${launchYear}-${String(launchMonth).padStart(2, '0')}-${String(launchDay).padStart(2, '0')}`,
         country: pickFrom(rand, COUNTRIES),
+        source: 'synthetic',
       })
       norad += 1
     }

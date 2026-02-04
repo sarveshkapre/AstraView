@@ -13,6 +13,7 @@
 - Loading overlay appears briefly on startup to confirm activity.
 - Time scrubber allows manual inspection of a fixed window.
 - Dataset toggle switches between payloads-only and all cataloged objects.
+- Trust panel surfaces data source, status, and freshness age.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

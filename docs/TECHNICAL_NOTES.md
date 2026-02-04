@@ -12,6 +12,11 @@
 - Synthetic orbital object generator in `src/data/orbitalObjects.ts`.
 - Each object includes regime, type, altitude, inclination, mean anomaly, RAAN, and metadata fields.
 - Dataset toggle in UI filters payloads-only vs all objects without a second dataset.
+- Live TLE ingestion via CelesTrak (active satellites) with localStorage caching and fallback to synthetic.
+
+## Data Pipeline
+- `src/data/tleSource.ts` downloads TLE text, caches for 6 hours, and parses to `OrbitObject`.
+- `satellite.js` propagates TLE objects to ECEF for rendering on the globe.
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.

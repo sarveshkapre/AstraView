@@ -1,3 +1,5 @@
+import type { SatRec } from 'satellite.js'
+
 export type OrbitRegime = 'LEO' | 'MEO' | 'GEO'
 export type OrbitType = 'Payload' | 'Rocket Body' | 'Debris'
 export type AltitudeBand = 'All' | '<500km' | '500-1200km' | '1200-20000km' | '20000km+'
@@ -17,6 +19,9 @@ export type OrbitObject = {
   constellation?: string
   launchDate?: string
   country?: string
+  source?: 'synthetic' | 'tle'
+  tle?: { line1: string; line2: string }
+  satrec?: SatRec
 }
 
 export type FiltersState = {

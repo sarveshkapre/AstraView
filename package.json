@@ -13,6 +13,7 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "satellite.js": "^6.0.2",
     "three": "^0.182.0"
   },
   "devDependencies": {

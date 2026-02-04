@@ -93,6 +93,8 @@ const App = () => {
   const toastTimerRef = useRef<number | null>(null)
   const [nowTick, setNowTick] = useState(() => Date.now())
   const [globeCommand, setGlobeCommand] = useState<'reset' | 'earth' | null>(null)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
@@ -425,6 +427,40 @@ const App = () => {
   const handleResetView = () => setGlobeCommand('reset')
   const handleFocusEarth = () => setGlobeCommand('earth')
 
+  const handlePausePlay = () => {
+    handleTimeToggle()
+  }
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return
+      }
+      if (event.key === '?' || (event.shiftKey && event.key === '/')) {
+        setShowShortcuts((prev) => !prev)
+      }
+      if (event.key === ' ') {
+        event.preventDefault()
+        handlePausePlay()
+      }
+      if (event.key.toLowerCase() === 'r') {
+        handleResetView()
+      }
+      if (event.key.toLowerCase() === 'f') {
+        handleFocusEarth()
+      }
+      if (event.key === '/') {
+        event.preventDefault()
+        searchInputRef.current?.focus()
+      }
+      if (event.key === 'Escape') {
+        setShowShortcuts(false)
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [handlePausePlay, handleResetView, handleFocusEarth])
+
   const handleRefreshData = async () => {
     if (!isOnline) {
       showToast('Offline. Connect to refresh live catalog.')
@@ -454,6 +490,40 @@ const App = () => {
   return (
     <div className="app">
       <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
+      {showShortcuts && (
+        <div className="shortcut-overlay" role="dialog" aria-modal="true">
+          <div className="shortcut-card">
+            <div className="shortcut-header">
+              <div className="shortcut-title">Keyboard Shortcuts</div>
+              <button type="button" className="ghost" onClick={() => setShowShortcuts(false)}>
+                Close
+              </button>
+            </div>
+            <div className="shortcut-list">
+              <div className="shortcut-item">
+                <span>Toggle shortcuts</span>
+                <span className="shortcut-key">?</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Pause/Play</span>
+                <span className="shortcut-key">Space</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Reset view</span>
+                <span className="shortcut-key">R</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Focus Earth</span>
+                <span className="shortcut-key">F</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Search</span>
+                <span className="shortcut-key">/</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <header className="topbar">
         <div>
           <div className="brand">AstraView</div>
@@ -462,6 +532,7 @@ const App = () => {
         <div className="search">
           <div className="search-field">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search satellites, NORAD ID, constellation"
               value={searchTerm}

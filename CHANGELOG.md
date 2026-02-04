@@ -108,3 +108,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - View controls for resetting camera and focusing Earth.
+
+## [1.0.1] - 2026-02-04
+
+### Added
+- Keyboard shortcut overlay and bindings.

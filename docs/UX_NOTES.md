@@ -21,6 +21,7 @@
 - Legend clarifies color encodings for type and source.
 - Performance toggle lets users trade detail for speed.
 - View controls allow quick reset or refocus on Earth.
+- Keyboard shortcut overlay (`?`) improves discoverability.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

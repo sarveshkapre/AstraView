@@ -63,3 +63,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Clarified freshness messaging when live data is unavailable.
+
+## [0.9.2] - 2026-02-04
+
+### Changed
+- Throttled position updates to improve performance with live TLE.

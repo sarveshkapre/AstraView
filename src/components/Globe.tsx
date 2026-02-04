@@ -103,6 +103,7 @@ const Globe = ({
   const trailLineRef = useRef<THREE.Line | null>(null)
   const selectedMarkerRef = useRef<THREE.Mesh | null>(null)
   const hoverMarkerRef = useRef<THREE.Mesh | null>(null)
+  const updateTimeRef = useRef<number>(0)
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const pointer = useMemo(() => new THREE.Vector2(), [])
@@ -390,7 +391,10 @@ const Globe = ({
       frameId = requestAnimationFrame(animate)
       if (!sceneRef.current || !cameraRef.current || !rendererRef.current || !controlsRef.current) return
 
-      if (geometryRef.current) {
+      const now = performance.now()
+      const shouldUpdate = now - updateTimeRef.current > 80
+      if (geometryRef.current && shouldUpdate) {
+        updateTimeRef.current = now
         const positions = geometryRef.current.attributes.position.array as Float32Array
         objectsRef.current.forEach((object, index) => {
           const position = positionForObject(object, timeRef.current)
@@ -430,7 +434,7 @@ const Globe = ({
         }
       }
 
-      if (trailLineRef.current && selectedId) {
+      if (trailLineRef.current && selectedId && shouldUpdate) {
         const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
         if (selectedObject) {
           const positions = trailLineRef.current.geometry.attributes.position.array as Float32Array

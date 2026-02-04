@@ -26,3 +26,4 @@
 - Density mode reduces point size and down-samples when zoomed out or when object count is high.
 - Offline detection keeps the cached dataset visible with a freshness indicator.
 - Simple seeded generator ensures repeatable dataset without network dependency.
+- Point updates are throttled (~12 FPS) to keep interaction smooth with live TLE propagation.

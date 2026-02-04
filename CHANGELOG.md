@@ -118,3 +118,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Header help button for shortcuts overlay.
+
+## [1.0.3] - 2026-02-04
+
+### Added
+- Accessibility improvements for help button and shortcut dialog focus.

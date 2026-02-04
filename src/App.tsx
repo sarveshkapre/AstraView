@@ -461,6 +461,12 @@ const App = () => {
     return () => window.removeEventListener('keydown', handleKey)
   }, [handlePausePlay, handleResetView, handleFocusEarth])
 
+  useEffect(() => {
+    if (!showShortcuts) return
+    const card = document.querySelector<HTMLDivElement>('.shortcut-card')
+    card?.focus()
+  }, [showShortcuts])
+
   const handleRefreshData = async () => {
     if (!isOnline) {
       showToast('Offline. Connect to refresh live catalog.')
@@ -491,11 +497,16 @@ const App = () => {
     <div className="app">
       <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
       {showShortcuts && (
-        <div className="shortcut-overlay" role="dialog" aria-modal="true">
-          <div className="shortcut-card">
+        <div className="shortcut-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+          <div className="shortcut-card" tabIndex={-1}>
             <div className="shortcut-header">
               <div className="shortcut-title">Keyboard Shortcuts</div>
-              <button type="button" className="ghost" onClick={() => setShowShortcuts(false)}>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setShowShortcuts(false)}
+                aria-label="Close shortcuts"
+              >
                 Close
               </button>
             </div>
@@ -588,6 +599,7 @@ const App = () => {
             type="button"
             className="help-button"
             onClick={() => setShowShortcuts(true)}
+            aria-label="Open keyboard shortcuts"
           >
             ?
           </button>

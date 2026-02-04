@@ -23,6 +23,7 @@
 - View controls allow quick reset or refocus on Earth.
 - Keyboard shortcut overlay (`?`) improves discoverability.
 - Help icon opens the shortcut overlay for mouse users.
+- Shortcut overlay is focusable and includes aria labels.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

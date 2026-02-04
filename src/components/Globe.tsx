@@ -92,6 +92,8 @@ const Globe = ({
   const earthGroupRef = useRef<THREE.Group | null>(null)
   const nightMaterialRef = useRef<THREE.ShaderMaterial | null>(null)
   const terminatorMaterialRef = useRef<THREE.ShaderMaterial | null>(null)
+  const cloudsRef = useRef<THREE.Mesh | null>(null)
+  const atmosphereRef = useRef<THREE.Mesh | null>(null)
   const pointsRef = useRef<THREE.Points | null>(null)
   const geometryRef = useRef<THREE.BufferGeometry | null>(null)
   const objectsRef = useRef<OrbitObject[]>([])
@@ -149,6 +151,9 @@ const Globe = ({
     nightMap.anisotropy = maxAnisotropy
     const normalMap = textureLoader.load('/textures/earth_normal_2048.jpg')
     normalMap.anisotropy = maxAnisotropy
+    const cloudsMap = textureLoader.load('/textures/earth_clouds_1024.png')
+    cloudsMap.colorSpace = THREE.SRGBColorSpace
+    cloudsMap.anisotropy = maxAnisotropy
 
     const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
     const earthMaterial = new THREE.MeshStandardMaterial({
@@ -162,13 +167,49 @@ const Globe = ({
     })
     const earth = new THREE.Mesh(earthGeometry, earthMaterial)
 
-    const atmosphereGeometry = new THREE.SphereGeometry(1.03, 64, 64)
-    const atmosphereMaterial = new THREE.MeshBasicMaterial({
-      color: '#4fd1c5',
+    const atmosphereGeometry = new THREE.SphereGeometry(1.05, 64, 64)
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        glowColor: { value: new THREE.Color('#67e8f9') },
+        intensity: { value: 0.75 },
+        falloff: { value: 2.3 },
+      },
+      vertexShader: `
+        varying vec3 vWorldNormal;
+        varying vec3 vWorldPosition;
+        void main() {
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * viewMatrix * vec4(vWorldPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorldNormal;
+        varying vec3 vWorldPosition;
+        uniform vec3 glowColor;
+        uniform float intensity;
+        uniform float falloff;
+        void main() {
+          vec3 viewDir = normalize(cameraPosition - vWorldPosition);
+          float glow = pow(1.0 - dot(normalize(vWorldNormal), viewDir), falloff);
+          gl_FragColor = vec4(glowColor, glow * intensity);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
       transparent: true,
-      opacity: 0.16,
+      depthWrite: false,
+      side: THREE.BackSide,
     })
     const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial)
+
+    const cloudsGeometry = new THREE.SphereGeometry(1.012, 64, 64)
+    const cloudsMaterial = new THREE.MeshStandardMaterial({
+      map: cloudsMap,
+      transparent: true,
+      opacity: 0.65,
+      depthWrite: false,
+    })
+    const clouds = new THREE.Mesh(cloudsGeometry, cloudsMaterial)
 
     const stars = createStars()
     const grid = createLatLong()
@@ -245,7 +286,7 @@ const Globe = ({
     const terminatorSphere = new THREE.Mesh(new THREE.SphereGeometry(1.02, 64, 64), terminatorMaterial)
 
     const earthGroup = new THREE.Group()
-    earthGroup.add(earth, nightSphere, terminatorSphere, atmosphere, grid)
+    earthGroup.add(earth, nightSphere, terminatorSphere, clouds, atmosphere, grid)
 
     const hoverMarker = new THREE.Mesh(
       new THREE.SphereGeometry(0.02, 16, 16),
@@ -268,6 +309,8 @@ const Globe = ({
     earthGroupRef.current = earthGroup
     nightMaterialRef.current = nightMaterial
     terminatorMaterialRef.current = terminatorMaterial
+    cloudsRef.current = clouds
+    atmosphereRef.current = atmosphere
     hoverMarkerRef.current = hoverMarker
     selectedMarkerRef.current = selectedMarker
 
@@ -361,6 +404,12 @@ const Globe = ({
 
       if (earthGroupRef.current) {
         earthGroupRef.current.rotation.y = timeRef.current * 0.03
+      }
+      if (cloudsRef.current) {
+        cloudsRef.current.rotation.y = timeRef.current * 0.035
+      }
+      if (atmosphereRef.current) {
+        atmosphereRef.current.rotation.y = timeRef.current * 0.01
       }
 
       if (nightMaterialRef.current) {

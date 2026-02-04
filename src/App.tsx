@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import Globe from './components/Globe'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
 import type {
   OrbitObject,
@@ -12,6 +11,8 @@ import type {
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import './App.css'
+
+const Globe = lazy(() => import('./components/Globe'))
 
 const ALL_REGIMES: OrbitRegime[] = ['LEO', 'MEO', 'GEO']
 const ALL_TYPES: OrbitType[] = ['Payload', 'Rocket Body', 'Debris']
@@ -511,17 +512,26 @@ const App = () => {
         </aside>
 
         <section className="globe-stage">
-          <Globe
-            objects={displayObjects}
-            timeSeconds={timeSeconds}
-            selectedId={selected?.id}
-            onHover={handleHover}
-            onSelect={handleSelect}
-            onViewChange={(view) => setViewState(view)}
-            focusObject={focusObject}
-            initialView={viewState}
-            pointSize={densityStep > 2 ? 0.016 : densityStep > 1 ? 0.018 : 0.022}
-          />
+          <Suspense
+            fallback={
+              <div className="loading">
+                <div className="loading-title">Loading 3D engine</div>
+                <div className="loading-subtitle">Preparing orbital renderers...</div>
+              </div>
+            }
+          >
+            <Globe
+              objects={displayObjects}
+              timeSeconds={timeSeconds}
+              selectedId={selected?.id}
+              onHover={handleHover}
+              onSelect={handleSelect}
+              onViewChange={(view) => setViewState(view)}
+              focusObject={focusObject}
+              initialView={viewState}
+              pointSize={densityStep > 2 ? 0.016 : densityStep > 1 ? 0.018 : 0.022}
+            />
+          </Suspense>
           {isLoading && (
             <div className="loading">
               <div className="loading-title">Initializing live orbits</div>

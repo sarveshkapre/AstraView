@@ -17,6 +17,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Orbit trail history and slow Earth rotation for motion context.
 - Day/night terminator glow and shader-based night lights.
 - Earth day/night textures and normal mapping for surface detail.
+- Cloud layer and atmospheric limb glow for depth.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

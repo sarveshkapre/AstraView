@@ -46,3 +46,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Non-blocking toast feedback for share links.
+
+## [0.8.0] - 2026-02-04
+
+### Added
+- Cloud layer and atmospheric limb glow.
+- Lazy-loaded globe bundle for smaller initial load.

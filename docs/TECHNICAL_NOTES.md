@@ -18,6 +18,7 @@
 - `src/data/tleSource.ts` downloads TLE text, caches for 6 hours, and parses to `OrbitObject`.
 - `satellite.js` propagates TLE objects to ECEF for rendering on the globe.
 - Manual refresh bypasses cache and updates the dataset immediately.
+- Data coverage metrics are derived from `source` and `type` on the merged dataset.
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.

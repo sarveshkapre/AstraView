@@ -73,3 +73,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Manual data refresh control with inline status messaging.
+
+## [0.9.4] - 2026-02-04
+
+### Added
+- Data coverage counts in the trust panel.

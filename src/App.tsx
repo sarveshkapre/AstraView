@@ -297,6 +297,14 @@ const App = () => {
         ? 'Live fetch failed, using cached or demo data.'
         : 'Live catalog ready.'
 
+  const coverage = useMemo(() => {
+    const livePayloads = baseObjects.filter((object) => object.source === 'tle').length
+    const syntheticObjects = baseObjects.filter((object) => object.source !== 'tle').length
+    const payloads = baseObjects.filter((object) => object.type === 'Payload').length
+    const nonPayloads = baseObjects.length - payloads
+    return { livePayloads, syntheticObjects, payloads, nonPayloads }
+  }, [baseObjects])
+
   const handleSelect = (object: OrbitObject | null) => {
     setSelected(object)
     setFocusObject(object)
@@ -608,6 +616,17 @@ const App = () => {
                 {isOnline ? 'Online.' : 'Offline mode. Using cached dataset.'} {dataStatusLabel}
                 Last refreshed: {lastUpdatedLabel}
                 {hasFreshness ? ` · Age: ${formatAge(dataAgeSec)}.` : '.'}
+              </p>
+            </div>
+            <div className="trust-item">
+              <strong>Data Coverage</strong>
+              <p>
+                Live payloads: {formatNumber(coverage.livePayloads)} · Synthetic objects:{' '}
+                {formatNumber(coverage.syntheticObjects)}
+              </p>
+              <p>
+                Payloads: {formatNumber(coverage.payloads)} · Non-payloads:{' '}
+                {formatNumber(coverage.nonPayloads)}
               </p>
             </div>
             <div className="trust-item">

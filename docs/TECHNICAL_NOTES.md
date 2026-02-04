@@ -2,6 +2,7 @@
 
 ## Rendering
 - Three.js scene with Earth sphere, atmosphere halo, starfield, lat/long grid, and shader-based night lights.
+- Day, night, and normal textures sourced from the three.js example texture pack (NASA Blue Marble derived).
 - Objects rendered as a single `Points` buffer with per-vertex colors.
 - Orbit path, trailing path, and terminator glow rendered when a selection is active.
 - Earth group rotates slowly for a sense of motion.

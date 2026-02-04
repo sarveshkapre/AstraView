@@ -31,3 +31,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Shader-based night lights and terminator glow for day/night cues.
+
+## [0.5.0] - 2026-02-04
+
+### Added
+- Earth day/night textures with normal mapping and tone-mapped rendering.

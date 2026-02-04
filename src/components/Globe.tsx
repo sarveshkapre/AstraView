@@ -122,6 +122,8 @@ const Globe = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(container.clientWidth, container.clientHeight)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
     container.appendChild(renderer.domElement)
 
     const controls = new OrbitControls(camera, renderer.domElement)
@@ -137,12 +139,26 @@ const Globe = ({
     const rim = new THREE.DirectionalLight('#4fd1c5', 0.6)
     rim.position.set(-4, -2, -1)
 
+    const textureLoader = new THREE.TextureLoader()
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy()
+    const dayMap = textureLoader.load('/textures/earth_day_2048.jpg')
+    dayMap.colorSpace = THREE.SRGBColorSpace
+    dayMap.anisotropy = maxAnisotropy
+    const nightMap = textureLoader.load('/textures/earth_night_2048.png')
+    nightMap.colorSpace = THREE.SRGBColorSpace
+    nightMap.anisotropy = maxAnisotropy
+    const normalMap = textureLoader.load('/textures/earth_normal_2048.jpg')
+    normalMap.anisotropy = maxAnisotropy
+
     const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
     const earthMaterial = new THREE.MeshStandardMaterial({
       color: '#102747',
+      map: dayMap,
+      normalMap,
+      normalScale: new THREE.Vector2(0.35, 0.35),
       emissive: '#0b1b2c',
       metalness: 0.05,
-      roughness: 0.8,
+      roughness: 0.85,
     })
     const earth = new THREE.Mesh(earthGeometry, earthMaterial)
 
@@ -161,47 +177,32 @@ const Globe = ({
       uniforms: {
         lightDir: { value: new THREE.Vector3(1, 0, 0) },
         intensity: { value: 1.1 },
+        nightMap: { value: nightMap },
       },
       vertexShader: `
         varying vec3 vWorldNormal;
-        varying vec3 vWorldPosition;
+        varying vec2 vUv;
         void main() {
           vWorldNormal = normalize(mat3(modelMatrix) * normal);
-          vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-          gl_Position = projectionMatrix * viewMatrix * vec4(vWorldPosition, 1.0);
+          vUv = uv;
+          gl_Position = projectionMatrix * viewMatrix * vec4((modelMatrix * vec4(position, 1.0)).xyz, 1.0);
         }
       `,
       fragmentShader: `
         varying vec3 vWorldNormal;
-        varying vec3 vWorldPosition;
+        varying vec2 vUv;
         uniform vec3 lightDir;
         uniform float intensity;
-
-        float hash(vec2 p) {
-          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-        }
-
-        float noise(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          float a = hash(i);
-          float b = hash(i + vec2(1.0, 0.0));
-          float c = hash(i + vec2(0.0, 1.0));
-          float d = hash(i + vec2(1.0, 1.0));
-          vec2 u = f * f * (3.0 - 2.0 * f);
-          return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-        }
+        uniform sampler2D nightMap;
 
         void main() {
           vec3 normal = normalize(vWorldNormal);
           float nDotL = dot(normal, normalize(lightDir));
           float nightMask = smoothstep(0.05, -0.25, nDotL);
-
-          vec2 uv = vec2(atan(normal.z, normal.x) / 6.28318 + 0.5, asin(normal.y) / 3.14159 + 0.5);
-          float city = noise(uv * 18.0);
-          city = smoothstep(0.62, 0.95, city);
-
-          vec3 color = vec3(0.95, 0.65, 0.25) * city * nightMask * intensity;
+          vec3 nightColor = texture2D(nightMap, vUv).rgb;
+          float city = max(max(nightColor.r, nightColor.g), nightColor.b);
+          city = smoothstep(0.25, 0.95, city);
+          vec3 color = nightColor * city * nightMask * intensity;
           gl_FragColor = vec4(color, nightMask * city);
         }
       `,

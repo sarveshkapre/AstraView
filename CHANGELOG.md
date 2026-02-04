@@ -88,3 +88,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Refresh toast now includes invalid TLE skip count.
+
+## [0.9.7] - 2026-02-04
+
+### Added
+- Header data health badge for live/cache/fallback state.

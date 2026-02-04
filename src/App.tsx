@@ -490,6 +490,18 @@ const App = () => {
           </button>
         </div>
         <div className="meta">
+          <div className={`health ${tleStatus}`}>
+            <span className="dot" />
+            {tleStatus === 'loading'
+              ? 'Loading live'
+              : tleStatus === 'ready'
+                ? isOnline
+                  ? 'Live'
+                  : 'Cached'
+                : tleStatus === 'error'
+                  ? 'Fallback'
+                  : 'Idle'}
+          </div>
           <div className="counts">
             <span>{formatNumber(filteredObjects.length)} objects</span>
             <span>LEO {formatNumber(breakdown.LEO)}</span>

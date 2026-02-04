@@ -17,6 +17,7 @@
 - Manual refresh button gives users control of live catalog updates.
 - Data coverage section shows live vs synthetic counts.
 - Skipped TLE entries surface as a small warning under coverage.
+- Data health badge shows live/cache/fallback state at a glance.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

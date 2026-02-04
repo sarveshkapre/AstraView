@@ -21,6 +21,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Live TLE ingestion (CelesTrak active satellites) with caching and offline fallback.
 - Manual refresh control for the live catalog.
 - Data coverage stats for live vs synthetic objects.
+- Live/cache/fallback health badge in the header.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

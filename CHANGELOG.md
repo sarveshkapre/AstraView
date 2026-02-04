@@ -78,3 +78,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Data coverage counts in the trust panel.
+
+## [0.9.5] - 2026-02-04
+
+### Added
+- Propagation error handling with skipped TLE count reporting.

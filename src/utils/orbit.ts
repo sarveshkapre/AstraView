@@ -18,8 +18,12 @@ export const positionForObject = (object: OrbitObject, timeSeconds: number) => {
     if (positionAndVelocity && positionAndVelocity.position) {
       const gmst = satellite.gstime(date)
       const ecf = satellite.eciToEcf(positionAndVelocity.position, gmst)
+      if ([ecf.x, ecf.y, ecf.z].some((val) => Number.isNaN(val))) {
+        return null
+      }
       return new THREE.Vector3(ecf.x / EARTH_RADIUS_KM, ecf.z / EARTH_RADIUS_KM, ecf.y / EARTH_RADIUS_KM)
     }
+    return null
   }
   const radius = getOrbitRadius(object.altitudeKm)
   const angularSpeed = (2 * Math.PI) / (object.periodMin * 60)
@@ -38,7 +42,8 @@ export const buildOrbitPath = (object: OrbitObject, segments = 180) => {
     const points: THREE.Vector3[] = []
     for (let i = 0; i <= segments; i += 1) {
       const timeOffset = (i / segments) * periodSeconds
-      points.push(positionForObject(object, timeOffset))
+      const pos = positionForObject(object, timeOffset)
+      if (pos) points.push(pos)
     }
     return points
   }

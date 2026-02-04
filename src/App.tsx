@@ -302,8 +302,9 @@ const App = () => {
     const syntheticObjects = baseObjects.filter((object) => object.source !== 'tle').length
     const payloads = baseObjects.filter((object) => object.type === 'Payload').length
     const nonPayloads = baseObjects.length - payloads
-    return { livePayloads, syntheticObjects, payloads, nonPayloads }
-  }, [baseObjects])
+    const invalidTle = tleStatus === 'ready' ? Math.max(0, tleObjects.length - livePayloads) : 0
+    return { livePayloads, syntheticObjects, payloads, nonPayloads, invalidTle }
+  }, [baseObjects, tleObjects.length, tleStatus])
 
   const handleSelect = (object: OrbitObject | null) => {
     setSelected(object)
@@ -628,6 +629,12 @@ const App = () => {
                 Payloads: {formatNumber(coverage.payloads)} · Non-payloads:{' '}
                 {formatNumber(coverage.nonPayloads)}
               </p>
+              {coverage.invalidTle > 0 && (
+                <p className="trust-note">
+                  {formatNumber(coverage.invalidTle)} TLE entries skipped due to propagation
+                  errors.
+                </p>
+              )}
             </div>
             <div className="trust-item">
               <strong>Limitations</strong>

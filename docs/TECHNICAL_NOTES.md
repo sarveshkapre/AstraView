@@ -19,6 +19,7 @@
 - `satellite.js` propagates TLE objects to ECEF for rendering on the globe.
 - Manual refresh bypasses cache and updates the dataset immediately.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
+- Invalid TLE entries are skipped during propagation and reported in the trust panel.
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.

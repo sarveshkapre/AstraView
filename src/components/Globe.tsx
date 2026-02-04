@@ -348,8 +348,12 @@ const Globe = ({
         }
         if (hoverMarkerRef.current && object) {
           const position = positionForObject(object, timeRef.current)
-          hoverMarkerRef.current.position.copy(position)
-          hoverMarkerRef.current.visible = true
+          if (position) {
+            hoverMarkerRef.current.position.copy(position)
+            hoverMarkerRef.current.visible = true
+          } else {
+            hoverMarkerRef.current.visible = false
+          }
         }
         rendererRef.current.domElement.style.cursor = 'pointer'
       } else {
@@ -398,6 +402,7 @@ const Globe = ({
         const positions = geometryRef.current.attributes.position.array as Float32Array
         objectsRef.current.forEach((object, index) => {
           const position = positionForObject(object, timeRef.current)
+          if (!position) return
           const offset = index * 3
           positions[offset] = position.x
           positions[offset + 1] = position.y
@@ -427,8 +432,12 @@ const Globe = ({
         const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
         if (selectedObject) {
           const position = positionForObject(selectedObject, timeRef.current)
-          selectedMarkerRef.current.position.copy(position)
-          selectedMarkerRef.current.visible = true
+          if (position) {
+            selectedMarkerRef.current.position.copy(position)
+            selectedMarkerRef.current.visible = true
+          } else {
+            selectedMarkerRef.current.visible = false
+          }
         } else {
           selectedMarkerRef.current.visible = false
         }
@@ -443,6 +452,7 @@ const Globe = ({
           for (let i = 0; i < segments; i += 1) {
             const t = timeRef.current - (trailSeconds * (segments - 1 - i)) / (segments - 1)
             const pos = positionForObject(selectedObject, t)
+            if (!pos) continue
             const offset = i * 3
             positions[offset] = pos.x
             positions[offset + 1] = pos.y
@@ -487,9 +497,10 @@ const Globe = ({
 
     objects.forEach((object, index) => {
       const offset = index * 3
-      positions[offset] = 0
-      positions[offset + 1] = 0
-      positions[offset + 2] = 0
+      const position = positionForObject(object, timeRef.current)
+      positions[offset] = position ? position.x : 0
+      positions[offset + 1] = position ? position.y : 0
+      positions[offset + 2] = position ? position.z : 0
       const color = getColor(object)
       colors[offset] = color.r
       colors[offset + 1] = color.g
@@ -531,6 +542,7 @@ const Globe = ({
     const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
     if (!selectedObject) return
     const points = buildOrbitPath(selectedObject, 180)
+    if (points.length < 2) return
     const geometry = new THREE.BufferGeometry().setFromPoints(points)
     const material = new THREE.LineBasicMaterial({ color: '#38bdf8', transparent: true, opacity: 0.7 })
     const line = new THREE.LineLoop(geometry, material)
@@ -550,6 +562,7 @@ const Globe = ({
   useEffect(() => {
     if (!focusObject || !cameraRef.current || !controlsRef.current) return
     const target = positionForObject(focusObject, timeRef.current)
+    if (!target) return
     const camera = cameraRef.current
     const controls = controlsRef.current
     const direction = camera.position.clone().sub(controls.target).normalize()

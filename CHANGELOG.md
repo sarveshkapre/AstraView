@@ -68,3 +68,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Throttled position updates to improve performance with live TLE.
+
+## [0.9.3] - 2026-02-04
+
+### Added
+- Manual data refresh control with inline status messaging.

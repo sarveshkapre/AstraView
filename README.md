@@ -19,6 +19,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Earth day/night textures and normal mapping for surface detail.
 - Cloud layer and atmospheric limb glow for depth.
 - Live TLE ingestion (CelesTrak active satellites) with caching and offline fallback.
+- Manual refresh control for the live catalog.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

@@ -138,3 +138,18 @@ export const loadActiveTleObjects = async () => {
     source: 'network' as const,
   }
 }
+
+export const refreshActiveTleObjects = async () => {
+  const response = await fetch(ACTIVE_TLE_URL)
+  if (!response.ok) {
+    throw new Error(`TLE fetch failed: ${response.status}`)
+  }
+  const tle = await response.text()
+  const fetchedAt = Date.now()
+  writeCache({ fetchedAt, tle })
+  return {
+    objects: parseTleText(tle),
+    fetchedAt: new Date(fetchedAt),
+    source: 'network' as const,
+  }
+}

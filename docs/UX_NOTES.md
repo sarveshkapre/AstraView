@@ -14,6 +14,7 @@
 - Time scrubber allows manual inspection of a fixed window.
 - Dataset toggle switches between payloads-only and all cataloged objects.
 - Trust panel surfaces data source, status, and freshness age.
+- Manual refresh button gives users control of live catalog updates.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

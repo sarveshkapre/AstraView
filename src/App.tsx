@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
-import { loadActiveTleObjects } from './data/tleSource'
+import { loadActiveTleObjects, refreshActiveTleObjects } from './data/tleSource'
 import type {
   OrbitObject,
   FiltersState,
@@ -70,6 +70,7 @@ const App = () => {
   const syntheticObjects = useMemo(() => generateObjects(58), [])
   const [tleObjects, setTleObjects] = useState<OrbitObject[]>([])
   const [tleStatus, setTleStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [tleMessage, setTleMessage] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
@@ -123,6 +124,7 @@ const App = () => {
     let cancelled = false
     const load = async () => {
       setTleStatus('loading')
+      setTleMessage(null)
       try {
         const result = await loadActiveTleObjects()
         if (cancelled) return
@@ -132,6 +134,7 @@ const App = () => {
       } catch {
         if (cancelled) return
         setTleStatus('error')
+        setTleMessage('Live catalog unavailable. Using cached or demo data.')
       }
     }
     load()
@@ -398,6 +401,26 @@ const App = () => {
     setFocusObject(object)
   }
 
+  const handleRefreshData = async () => {
+    if (!isOnline) {
+      showToast('Offline. Connect to refresh live catalog.')
+      return
+    }
+    setTleStatus('loading')
+    setTleMessage(null)
+    try {
+      const result = await refreshActiveTleObjects()
+      setTleObjects(result.objects)
+      setLastUpdated(result.fetchedAt)
+      setTleStatus('ready')
+      showToast('Live catalog refreshed.')
+    } catch {
+      setTleStatus('error')
+      setTleMessage('Refresh failed. Using cached or demo data.')
+      showToast('Refresh failed. Using cached data.')
+    }
+  }
+
   return (
     <div className="app">
       <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
@@ -568,6 +591,16 @@ const App = () => {
             <div className="trust-item">
               <strong>Data Source</strong>
               <p>{dataSourceLabel}</p>
+              <div className="trust-actions">
+                <button
+                  type="button"
+                  onClick={handleRefreshData}
+                  disabled={!isOnline || tleStatus === 'loading'}
+                >
+                  {tleStatus === 'loading' ? 'Refreshing...' : 'Refresh live data'}
+                </button>
+              </div>
+              {tleMessage && <div className="trust-note">{tleMessage}</div>}
             </div>
             <div className="trust-item">
               <strong>Freshness</strong>

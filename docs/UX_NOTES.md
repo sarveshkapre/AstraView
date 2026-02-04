@@ -20,6 +20,7 @@
 - Data health badge shows live/cache/fallback state at a glance.
 - Legend clarifies color encodings for type and source.
 - Performance toggle lets users trade detail for speed.
+- View controls allow quick reset or refocus on Earth.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

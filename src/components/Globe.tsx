@@ -71,6 +71,8 @@ type GlobeProps = {
   focusObject?: OrbitObject | null
   initialView?: ViewState
   pointSize?: number
+  externalCommand?: 'reset' | 'earth' | null
+  onCommandHandled?: () => void
 }
 
 const Globe = ({
@@ -83,6 +85,8 @@ const Globe = ({
   focusObject,
   initialView,
   pointSize = 0.02,
+  externalCommand,
+  onCommandHandled,
 }: GlobeProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
@@ -571,6 +575,26 @@ const Globe = ({
     camera.position.copy(target.clone().add(direction.multiplyScalar(distance)))
     controls.update()
   }, [focusObject])
+
+  useEffect(() => {
+    if (!externalCommand || !cameraRef.current || !controlsRef.current) return
+    const camera = cameraRef.current
+    const controls = controlsRef.current
+    if (externalCommand === 'reset') {
+      camera.position.set(0, 1.6, 3.4)
+      controls.target.set(0, 0, 0)
+      controls.update()
+    }
+    if (externalCommand === 'earth') {
+      const target = new THREE.Vector3(0, 0, 0)
+      const direction = camera.position.clone().sub(controls.target).normalize()
+      const distance = camera.position.distanceTo(controls.target)
+      controls.target.copy(target)
+      camera.position.copy(target.clone().add(direction.multiplyScalar(distance)))
+      controls.update()
+    }
+    onCommandHandled?.()
+  }, [externalCommand, onCommandHandled])
 
   return <div className="globe" ref={containerRef} />
 }

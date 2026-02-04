@@ -92,6 +92,7 @@ const App = () => {
   const [toast, setToast] = useState<string | null>(null)
   const toastTimerRef = useRef<number | null>(null)
   const [nowTick, setNowTick] = useState(() => Date.now())
+  const [globeCommand, setGlobeCommand] = useState<'reset' | 'earth' | null>(null)
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
@@ -421,6 +422,9 @@ const App = () => {
     setFocusObject(object)
   }
 
+  const handleResetView = () => setGlobeCommand('reset')
+  const handleFocusEarth = () => setGlobeCommand('earth')
+
   const handleRefreshData = async () => {
     if (!isOnline) {
       showToast('Offline. Connect to refresh live catalog.')
@@ -706,6 +710,8 @@ const App = () => {
               focusObject={focusObject}
               initialView={viewState}
               pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
+              externalCommand={globeCommand}
+              onCommandHandled={() => setGlobeCommand(null)}
             />
           </Suspense>
           {isLoading && (
@@ -736,6 +742,14 @@ const App = () => {
               <div className="timestamp">
                 Mode: {timeState.mode === 'live' ? 'Live' : 'Paused'} · t+{timeSeconds.toFixed(0)}s
               </div>
+            </div>
+            <div className="view-controls">
+              <button onClick={handleResetView} type="button">
+                Reset View
+              </button>
+              <button className="ghost" onClick={handleFocusEarth} type="button">
+                Focus Earth
+              </button>
             </div>
             <div className="time-scrub">
               <div className="scrub-label">Scrub (0-100 min)</div>

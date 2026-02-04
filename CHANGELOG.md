@@ -103,3 +103,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Performance toggle for detail vs speed.
+
+## [1.0.0] - 2026-02-04
+
+### Added
+- View controls for resetting camera and focusing Earth.

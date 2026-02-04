@@ -1,0 +1,25 @@
+# UX Notes
+
+## Visual Direction
+- Dark, cinematic canvas with cool blue accents and neon highlights.
+- Serif brand mark for gravitas, sans-serif UI for clarity.
+- Minimal chrome: panels are slim and glassy.
+
+## Interaction Model
+- Orbit control: click-drag to rotate, scroll to zoom.
+- Search and filters update instantly.
+- Hover = tooltip, click = selection + orbit path.
+
+## Accessibility & Clarity
+- Keyboard focus styles on inputs and buttons.
+- Motion can be paused via time controls.
+- Trust panel anchors definitions and limitations.
+
+## Performance
+- Density mode kicks in when object count is high.
+- Orbit points are rendered as a single buffer for efficiency.
+
+## Future Enhancements
+- Dataset toggles for satellites vs all objects.
+- Timeline scrubber.
+- Map overlays for ground tracks.

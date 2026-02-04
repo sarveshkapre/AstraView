@@ -90,6 +90,8 @@ const Globe = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
   const controlsRef = useRef<OrbitControls | null>(null)
   const earthGroupRef = useRef<THREE.Group | null>(null)
+  const nightMaterialRef = useRef<THREE.ShaderMaterial | null>(null)
+  const terminatorMaterialRef = useRef<THREE.ShaderMaterial | null>(null)
   const pointsRef = useRef<THREE.Points | null>(null)
   const geometryRef = useRef<THREE.BufferGeometry | null>(null)
   const objectsRef = useRef<OrbitObject[]>([])
@@ -129,9 +131,9 @@ const Globe = ({
     controls.maxDistance = 6
     controls.enablePan = false
 
-    const ambient = new THREE.AmbientLight('#8bb8ff', 0.45)
-    const key = new THREE.DirectionalLight('#fef9c3', 1.1)
-    key.position.set(4, 2, 2)
+    const ambient = new THREE.AmbientLight('#8bb8ff', 0.35)
+    const key = new THREE.DirectionalLight('#fef9c3', 1.15)
+    key.position.set(5, 2.4, 1.8)
     const rim = new THREE.DirectionalLight('#4fd1c5', 0.6)
     rim.position.set(-4, -2, -1)
 
@@ -155,8 +157,94 @@ const Globe = ({
     const stars = createStars()
     const grid = createLatLong()
 
+    const nightMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        lightDir: { value: new THREE.Vector3(1, 0, 0) },
+        intensity: { value: 1.1 },
+      },
+      vertexShader: `
+        varying vec3 vWorldNormal;
+        varying vec3 vWorldPosition;
+        void main() {
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * viewMatrix * vec4(vWorldPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorldNormal;
+        varying vec3 vWorldPosition;
+        uniform vec3 lightDir;
+        uniform float intensity;
+
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+
+        void main() {
+          vec3 normal = normalize(vWorldNormal);
+          float nDotL = dot(normal, normalize(lightDir));
+          float nightMask = smoothstep(0.05, -0.25, nDotL);
+
+          vec2 uv = vec2(atan(normal.z, normal.x) / 6.28318 + 0.5, asin(normal.y) / 3.14159 + 0.5);
+          float city = noise(uv * 18.0);
+          city = smoothstep(0.62, 0.95, city);
+
+          vec3 color = vec3(0.95, 0.65, 0.25) * city * nightMask * intensity;
+          gl_FragColor = vec4(color, nightMask * city);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+
+    const terminatorMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        lightDir: { value: new THREE.Vector3(1, 0, 0) },
+        glowColor: { value: new THREE.Color('#38bdf8') },
+      },
+      vertexShader: `
+        varying vec3 vWorldNormal;
+        varying vec3 vWorldPosition;
+        void main() {
+          vWorldNormal = normalize(mat3(modelMatrix) * normal);
+          vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * viewMatrix * vec4(vWorldPosition, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorldNormal;
+        uniform vec3 lightDir;
+        uniform vec3 glowColor;
+        void main() {
+          vec3 normal = normalize(vWorldNormal);
+          float nDotL = dot(normal, normalize(lightDir));
+          float band = smoothstep(-0.02, 0.02, nDotL) * smoothstep(0.18, -0.02, nDotL);
+          gl_FragColor = vec4(glowColor, band * 0.6);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+
+    const nightSphere = new THREE.Mesh(new THREE.SphereGeometry(1.005, 64, 64), nightMaterial)
+    const terminatorSphere = new THREE.Mesh(new THREE.SphereGeometry(1.02, 64, 64), terminatorMaterial)
+
     const earthGroup = new THREE.Group()
-    earthGroup.add(earth, atmosphere, grid)
+    earthGroup.add(earth, nightSphere, terminatorSphere, atmosphere, grid)
 
     const hoverMarker = new THREE.Mesh(
       new THREE.SphereGeometry(0.02, 16, 16),
@@ -177,6 +265,8 @@ const Globe = ({
     rendererRef.current = renderer
     controlsRef.current = controls
     earthGroupRef.current = earthGroup
+    nightMaterialRef.current = nightMaterial
+    terminatorMaterialRef.current = terminatorMaterial
     hoverMarkerRef.current = hoverMarker
     selectedMarkerRef.current = selectedMarker
 
@@ -270,6 +360,13 @@ const Globe = ({
 
       if (earthGroupRef.current) {
         earthGroupRef.current.rotation.y = timeRef.current * 0.03
+      }
+
+      if (nightMaterialRef.current) {
+        nightMaterialRef.current.uniforms.lightDir.value.copy(key.position).normalize()
+      }
+      if (terminatorMaterialRef.current) {
+        terminatorMaterialRef.current.uniforms.lightDir.value.copy(key.position).normalize()
       }
 
       if (selectedMarkerRef.current && selectedId) {

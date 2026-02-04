@@ -497,4 +497,8 @@ input:focus {
   .time-controls {
     flex-wrap: wrap;
   }
+
+  .time-scrub input[type='range'] {
+    width: 180px;
+  }
 }

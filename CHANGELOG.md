@@ -26,3 +26,8 @@ All notable changes to this project will be documented in this file.
 - Time scrubber and playback speed controls.
 - Orbit trail rendering for selected objects.
 - Slow Earth rotation for motion context.
+
+## [0.4.0] - 2026-02-04
+
+### Added
+- Shader-based night lights and terminator glow for day/night cues.

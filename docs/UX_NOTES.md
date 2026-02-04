@@ -4,6 +4,7 @@
 - Dark, cinematic canvas with cool blue accents and neon highlights.
 - Serif brand mark for gravitas, sans-serif UI for clarity.
 - Minimal chrome: panels are slim and glassy.
+- Day/night terminator and city lights add depth even without textures.
 
 ## Interaction Model
 - Orbit control: click-drag to rotate, scroll to zoom.

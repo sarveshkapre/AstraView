@@ -1,9 +1,9 @@
 # Technical Notes
 
 ## Rendering
-- Three.js scene with Earth sphere, atmosphere halo, starfield, and lat/long grid.
+- Three.js scene with Earth sphere, atmosphere halo, starfield, lat/long grid, and shader-based night lights.
 - Objects rendered as a single `Points` buffer with per-vertex colors.
-- Orbit path and trailing path rendered when a selection is active.
+- Orbit path, trailing path, and terminator glow rendered when a selection is active.
 - Earth group rotates slowly for a sense of motion.
 
 ## Data Model

@@ -11,6 +11,7 @@ import type {
   TimeState,
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
+import { isValidTleObject } from './utils/orbit'
 import './App.css'
 
 const Globe = lazy(() => import('./components/Globe'))
@@ -71,6 +72,7 @@ const App = () => {
   const [tleObjects, setTleObjects] = useState<OrbitObject[]>([])
   const [tleStatus, setTleStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [tleMessage, setTleMessage] = useState<string | null>(null)
+  const [invalidTleCount, setInvalidTleCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
@@ -128,6 +130,8 @@ const App = () => {
       try {
         const result = await loadActiveTleObjects()
         if (cancelled) return
+        const invalidCount = result.objects.filter((object) => !isValidTleObject(object)).length
+        setInvalidTleCount(invalidCount)
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
         setTleStatus('ready')
@@ -302,9 +306,9 @@ const App = () => {
     const syntheticObjects = baseObjects.filter((object) => object.source !== 'tle').length
     const payloads = baseObjects.filter((object) => object.type === 'Payload').length
     const nonPayloads = baseObjects.length - payloads
-    const invalidTle = tleStatus === 'ready' ? Math.max(0, tleObjects.length - livePayloads) : 0
+    const invalidTle = tleStatus === 'ready' ? invalidTleCount : 0
     return { livePayloads, syntheticObjects, payloads, nonPayloads, invalidTle }
-  }, [baseObjects, tleObjects.length, tleStatus])
+  }, [baseObjects, invalidTleCount, tleStatus])
 
   const handleSelect = (object: OrbitObject | null) => {
     setSelected(object)
@@ -419,10 +423,16 @@ const App = () => {
     setTleMessage(null)
     try {
       const result = await refreshActiveTleObjects()
+      const invalidCount = result.objects.filter((object) => !isValidTleObject(object)).length
+      setInvalidTleCount(invalidCount)
       setTleObjects(result.objects)
       setLastUpdated(result.fetchedAt)
       setTleStatus('ready')
-      showToast('Live catalog refreshed.')
+      showToast(
+        invalidCount > 0
+          ? `Live catalog refreshed. ${invalidCount} TLEs skipped.`
+          : 'Live catalog refreshed.',
+      )
     } catch {
       setTleStatus('error')
       setTleMessage('Refresh failed. Using cached or demo data.')

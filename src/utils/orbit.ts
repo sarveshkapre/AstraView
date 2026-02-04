@@ -36,6 +36,11 @@ export const positionForObject = (object: OrbitObject, timeSeconds: number) => {
   return position
 }
 
+export const isValidTleObject = (object: OrbitObject) => {
+  if (!object.satrec) return true
+  return Boolean(positionForObject(object, 0))
+}
+
 export const buildOrbitPath = (object: OrbitObject, segments = 180) => {
   if (object.satrec) {
     const periodSeconds = object.satrec.no ? (2 * Math.PI) / object.satrec.no * 60 : 5400

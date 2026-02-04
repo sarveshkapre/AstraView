@@ -83,3 +83,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Propagation error handling with skipped TLE count reporting.
+
+## [0.9.6] - 2026-02-04
+
+### Added
+- Refresh toast now includes invalid TLE skip count.

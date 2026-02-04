@@ -98,3 +98,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Legend for object type and data source colors.
+
+## [0.9.9] - 2026-02-04
+
+### Added
+- Performance toggle for detail vs speed.

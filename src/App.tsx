@@ -41,6 +41,7 @@ const defaultFilters = (): FiltersState => ({
   constellations: new Set(),
   altitudeBand: 'All',
   dataset: 'all',
+  performance: 'balanced',
 })
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
@@ -64,6 +65,7 @@ const getActiveFiltersCount = (filters: FiltersState) => {
   if (filters.regimes.size !== ALL_REGIMES.length) count += filters.regimes.size
   if (filters.types.size !== ALL_TYPES.length) count += filters.types.size
   if (filters.dataset !== 'all') count += 1
+  if (filters.performance !== 'balanced') count += 1
   return count
 }
 
@@ -219,7 +221,12 @@ const App = () => {
   const clustersEnabled = filteredObjects.length > 1500
   const cameraDistance = viewState?.distance ?? 3.2
   const zoomDensity = cameraDistance > 4.3 ? 3 : cameraDistance > 3.4 ? 2 : 1
-  const densityStep = Math.max(1, clustersEnabled ? zoomDensity * 2 : zoomDensity)
+  const performanceMultiplier = filters.performance === 'high' ? 0.7 : filters.performance === 'low' ? 2 : 1
+  const densityStep = Math.max(
+    1,
+    Math.round((clustersEnabled ? zoomDensity * 2 : zoomDensity) * performanceMultiplier),
+  )
+  const pointSize = filters.performance === 'high' ? 0.024 : filters.performance === 'low' ? 0.017 : 0.022
   const displayObjects = useMemo(() => {
     let list =
       densityStep === 1 ? filteredObjects : filteredObjects.filter((_, index) => index % densityStep === 0)
@@ -607,6 +614,21 @@ const App = () => {
               </div>
               <div className="hint">Tip: click a constellation twice to clear.</div>
             </div>
+            <div className="filter-group">
+              <div className="filter-label">Performance</div>
+              <div className="chips">
+                {(['high', 'balanced', 'low'] as FiltersState['performance'][]).map((mode) => (
+                  <button
+                    key={mode}
+                    className={`chip ${filters.performance === mode ? 'active' : ''}`}
+                    onClick={() => setFilters((prev) => ({ ...prev, performance: mode }))}
+                    type="button"
+                  >
+                    {mode === 'high' ? 'High detail' : mode === 'low' ? 'Low detail' : 'Balanced'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
           <section className="trust">
             <div className="section-title">Trust Panel</div>
@@ -683,7 +705,7 @@ const App = () => {
               onViewChange={(view) => setViewState(view)}
               focusObject={focusObject}
               initialView={viewState}
-              pointSize={densityStep > 2 ? 0.016 : densityStep > 1 ? 0.018 : 0.022}
+              pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
             />
           </Suspense>
           {isLoading && (

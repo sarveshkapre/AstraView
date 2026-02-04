@@ -23,6 +23,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Data coverage stats for live vs synthetic objects.
 - Live/cache/fallback health badge in the header.
 - Visual legend for type and data source.
+- Performance toggle for detail vs speed.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

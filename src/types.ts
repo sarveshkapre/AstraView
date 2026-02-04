@@ -30,6 +30,7 @@ export type FiltersState = {
   constellations: Set<string>
   altitudeBand: AltitudeBand
   dataset: 'all' | 'payloads'
+  performance: 'high' | 'balanced' | 'low'
 }
 
 export type ViewState = {

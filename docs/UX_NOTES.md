@@ -19,6 +19,7 @@
 - Skipped TLE entries surface as a small warning under coverage.
 - Data health badge shows live/cache/fallback state at a glance.
 - Legend clarifies color encodings for type and source.
+- Performance toggle lets users trade detail for speed.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

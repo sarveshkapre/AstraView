@@ -41,3 +41,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Dataset toggle for payloads-only vs all cataloged objects.
+
+## [0.7.0] - 2026-02-04
+
+### Added
+- Non-blocking toast feedback for share links.

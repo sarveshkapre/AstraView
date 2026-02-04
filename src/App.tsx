@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Globe from './components/Globe'
 import { generateObjects } from './data/orbitalObjects'
 import type {
@@ -72,6 +72,8 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
     const urlState = parseUrlState()
@@ -278,12 +280,20 @@ const App = () => {
     setSearchTerm('')
   }
 
+  const showToast = (message: string) => {
+    setToast(message)
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current)
+    }
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
   const shareLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
-      alert('Share link copied to clipboard.')
+      showToast('Share link copied to clipboard.')
     } catch (error) {
-      alert('Copy failed. Use your browser menu to copy the URL.')
+      showToast('Copy failed. Use your browser menu to copy the URL.')
     }
   }
 
@@ -321,6 +331,7 @@ const App = () => {
 
   return (
     <div className="app">
+      <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
       <header className="topbar">
         <div>
           <div className="brand">AstraView</div>

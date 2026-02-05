@@ -29,6 +29,7 @@
 - Export PNG button provides shareable snapshots.
 - Snapshot toggle lets users export globe-only or full UI.
 - Watermark toggle allows branded or clean exports.
+- Snapshot presets provide one-click export configurations.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

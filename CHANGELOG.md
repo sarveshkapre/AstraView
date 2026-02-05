@@ -148,3 +148,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Snapshot watermark toggle and branding stamp.
+
+## [1.0.9] - 2026-02-04
+
+### Added
+- Snapshot export presets.

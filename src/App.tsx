@@ -97,6 +97,7 @@ const App = () => {
   const [snapshotMode, setSnapshotMode] = useState<'globe' | 'full'>('globe')
   const [snapshotWatermark, setSnapshotWatermark] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
+  const [snapshotPreset, setSnapshotPreset] = useState<'custom' | 'presentation' | 'social' | 'report'>('custom')
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
@@ -396,6 +397,32 @@ const App = () => {
     } catch (error) {
       showToast('Copy failed. Use your browser menu to copy the URL.')
     }
+  }
+
+  const applyPreset = (preset: 'presentation' | 'social' | 'report') => {
+    setSnapshotPreset(preset)
+    if (preset === 'presentation') {
+      setSnapshotMode('globe')
+      setSnapshotWatermark(true)
+    }
+    if (preset === 'social') {
+      setSnapshotMode('full')
+      setSnapshotWatermark(true)
+    }
+    if (preset === 'report') {
+      setSnapshotMode('globe')
+      setSnapshotWatermark(false)
+    }
+  }
+
+  const handleSnapshotModeChange = (mode: 'globe' | 'full') => {
+    setSnapshotMode(mode)
+    setSnapshotPreset('custom')
+  }
+
+  const handleSnapshotWatermarkChange = (checked: boolean) => {
+    setSnapshotWatermark(checked)
+    setSnapshotPreset('custom')
   }
 
   const handleExport = async () => {
@@ -1071,18 +1098,38 @@ const App = () => {
             </button>
             <div className="snapshot-toggle">
               <span>Snapshot</span>
+              <div className="preset-row">
+                <label htmlFor="snapshot-preset">Preset</label>
+                <select
+                  id="snapshot-preset"
+                  value={snapshotPreset}
+                  onChange={(event) => {
+                    const value = event.target.value as typeof snapshotPreset
+                    if (value === 'custom') {
+                      setSnapshotPreset('custom')
+                    } else {
+                      applyPreset(value)
+                    }
+                  }}
+                >
+                  <option value="custom">Custom</option>
+                  <option value="presentation">Presentation</option>
+                  <option value="social">Social</option>
+                  <option value="report">Report</option>
+                </select>
+              </div>
               <div className="chips">
                 <button
                   type="button"
                   className={`chip ${snapshotMode === 'globe' ? 'active' : ''}`}
-                  onClick={() => setSnapshotMode('globe')}
+                  onClick={() => handleSnapshotModeChange('globe')}
                 >
                   Globe only
                 </button>
                 <button
                   type="button"
                   className={`chip ${snapshotMode === 'full' ? 'active' : ''}`}
-                  onClick={() => setSnapshotMode('full')}
+                  onClick={() => handleSnapshotModeChange('full')}
                 >
                   Full UI
                 </button>
@@ -1091,7 +1138,7 @@ const App = () => {
                 <input
                   type="checkbox"
                   checked={snapshotWatermark}
-                  onChange={(event) => setSnapshotWatermark(event.target.checked)}
+                  onChange={(event) => handleSnapshotWatermarkChange(event.target.checked)}
                 />
                 Include watermark
               </label>

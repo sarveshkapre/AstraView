@@ -431,6 +431,25 @@ const App = () => {
     setSnapshotPreset('custom')
   }
 
+  const stampWatermark = (canvas: HTMLCanvasElement) => {
+    if (!snapshotWatermark) return canvas
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return canvas
+    const padding = 20
+    const text = 'AstraView'
+    ctx.save()
+    ctx.font = '600 18px Space Grotesk, sans-serif'
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.75)'
+    ctx.shadowColor = 'rgba(2, 6, 23, 0.6)'
+    ctx.shadowBlur = 6
+    const metrics = ctx.measureText(text)
+    const x = canvas.width - metrics.width - padding
+    const y = canvas.height - padding
+    ctx.fillText(text, x, y)
+    ctx.restore()
+    return canvas
+  }
+
   const handleExport = async () => {
     if (isExporting) return
     setIsExporting(true)
@@ -440,25 +459,6 @@ const App = () => {
       return
     }
     try {
-      const stampWatermark = (canvas: HTMLCanvasElement) => {
-        if (!snapshotWatermark) return canvas
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return canvas
-        const padding = 20
-        const text = 'AstraView'
-        ctx.save()
-        ctx.font = '600 18px Space Grotesk, sans-serif'
-        ctx.fillStyle = 'rgba(226, 232, 240, 0.75)'
-        ctx.shadowColor = 'rgba(2, 6, 23, 0.6)'
-        ctx.shadowBlur = 6
-        const metrics = ctx.measureText(text)
-        const x = canvas.width - metrics.width - padding
-        const y = canvas.height - padding
-        ctx.fillText(text, x, y)
-        ctx.restore()
-        return canvas
-      }
-
       if (snapshotMode === 'globe') {
         const dataUrl = globeCanvas.toDataURL('image/png')
         const img = new Image()
@@ -508,6 +508,52 @@ const App = () => {
       }
     } catch {
       showToast('Snapshot failed. Try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleCopySnapshot = async () => {
+    if (isExporting) return
+    if (!globeCanvas) {
+      showToast('Globe not ready yet.')
+      return
+    }
+    if (!navigator.clipboard || !('write' in navigator.clipboard)) {
+      showToast('Clipboard images not supported in this browser.')
+      return
+    }
+    setIsExporting(true)
+    try {
+      let canvas: HTMLCanvasElement
+      if (snapshotMode === 'globe') {
+        canvas = document.createElement('canvas')
+        canvas.width = Math.round(globeCanvas.width * exportScale)
+        canvas.height = Math.round(globeCanvas.height * exportScale)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('No canvas context')
+        ctx.drawImage(globeCanvas, 0, 0, canvas.width, canvas.height)
+      } else {
+        const target = document.querySelector<HTMLElement>('.app')
+        if (!target) throw new Error('Snapshot target missing')
+        const html2canvas = (await import('html2canvas')).default
+        canvas = await html2canvas(target, {
+          useCORS: true,
+          backgroundColor: '#05070f',
+          scale: exportScale * (window.devicePixelRatio || 1),
+          logging: false,
+        })
+      }
+      stampWatermark(canvas)
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((result) => resolve(result), 'image/png'),
+      )
+      if (!blob) throw new Error('No blob')
+      // @ts-ignore ClipboardItem is not in all TS lib targets
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      showToast('Snapshot copied to clipboard.')
+    } catch {
+      showToast('Copy failed. Try export instead.')
     } finally {
       setIsExporting(false)
     }
@@ -1172,6 +1218,9 @@ const App = () => {
             </div>
             <button className="ghost" onClick={handleExport} type="button" disabled={isExporting}>
               {isExporting ? 'Exporting...' : 'Export PNG'}
+            </button>
+            <button className="ghost" onClick={handleCopySnapshot} type="button" disabled={isExporting}>
+              Copy PNG
             </button>
             {isExporting && <div className="export-status">Export in progress...</div>}
           </section>

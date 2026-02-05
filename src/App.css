@@ -709,6 +709,10 @@ body {
   cursor: not-allowed;
 }
 
+.share .ghost + .ghost {
+  margin-top: 0.4rem;
+}
+
 .preset-row select:disabled {
   opacity: 0.5;
 }

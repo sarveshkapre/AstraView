@@ -168,3 +168,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Export progress indicator and disabled controls during snapshot.
+
+## [1.1.3] - 2026-02-04
+
+### Added
+- Copy PNG to clipboard option.

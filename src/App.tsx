@@ -1171,6 +1171,9 @@ const App = () => {
                   <option value="report">Report</option>
                 </select>
               </div>
+              <div className="preset-hint">
+                Presentation: globe + watermark · Social: full UI + watermark · Report: globe only
+              </div>
               <div className="preset-row">
                 <label htmlFor="snapshot-scale">Scale</label>
                 <div className="scale-row">

@@ -34,6 +34,7 @@
 - Scale tooltip warns about slower exports at higher resolution.
 - Exporting state disables controls and shows progress text.
 - Copy PNG option enables quick clipboard sharing when supported.
+- Preset hint text clarifies export behaviors.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

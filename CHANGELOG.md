@@ -173,3 +173,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Copy PNG to clipboard option.
+
+## [1.1.4] - 2026-02-04
+
+### Added
+- Preset hint text in snapshot panel.

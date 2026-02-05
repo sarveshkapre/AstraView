@@ -607,6 +607,10 @@ const App = () => {
                   ? 'Fallback'
                   : 'Idle'}
           </div>
+          <div className="status-line">
+            <span>Mode: {filters.dataset === 'payloads' ? 'Satellites' : 'All Objects'}</span>
+            <span>Perf: {filters.performance}</span>
+          </div>
           <button
             type="button"
             className="help-button"

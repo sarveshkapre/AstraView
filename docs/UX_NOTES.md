@@ -25,6 +25,7 @@
 - Help icon opens the shortcut overlay for mouse users.
 - Shortcut overlay is focusable and includes aria labels.
 - Focus returns to the Help icon when the dialog closes.
+- Header status line shows dataset mode and performance setting.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

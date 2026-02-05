@@ -128,3 +128,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Focus restoration to help button after closing shortcuts dialog.
+
+## [1.0.5] - 2026-02-04
+
+### Added
+- Header status line for dataset mode and performance.

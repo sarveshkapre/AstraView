@@ -27,6 +27,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - View controls for resetting camera or focusing Earth.
 - Keyboard shortcuts overlay (`?`) for quick help.
 - Help icon to open the shortcut overlay.
+- Header status line for dataset mode and performance.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

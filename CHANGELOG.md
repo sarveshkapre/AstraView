@@ -158,3 +158,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Export scale option (1x/2x) for snapshots.
+
+## [1.1.1] - 2026-02-04
+
+### Added
+- Export scale tooltip warning about slower 2x captures.

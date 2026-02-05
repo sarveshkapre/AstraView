@@ -1126,14 +1126,19 @@ const App = () => {
               </div>
               <div className="preset-row">
                 <label htmlFor="snapshot-scale">Scale</label>
-                <select
-                  id="snapshot-scale"
-                  value={exportScale}
-                  onChange={(event) => handleExportScaleChange(Number(event.target.value))}
-                >
-                  <option value={1}>1x</option>
-                  <option value={2}>2x</option>
-                </select>
+                <div className="scale-row">
+                  <select
+                    id="snapshot-scale"
+                    value={exportScale}
+                    onChange={(event) => handleExportScaleChange(Number(event.target.value))}
+                  >
+                    <option value={1}>1x</option>
+                    <option value={2}>2x</option>
+                  </select>
+                  <span className="scale-tip" title="2x captures are sharper but may be slower on large screens.">
+                    i
+                  </span>
+                </div>
               </div>
               <div className="chips">
                 <button

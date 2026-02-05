@@ -31,6 +31,7 @@
 - Watermark toggle allows branded or clean exports.
 - Snapshot presets provide one-click export configurations.
 - Export scale option supports 1x or 2x outputs.
+- Scale tooltip warns about slower exports at higher resolution.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

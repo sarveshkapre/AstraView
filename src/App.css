@@ -669,6 +669,25 @@ body {
   border-radius: 8px;
 }
 
+.scale-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scale-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #e2e8f0;
+  font-size: 0.7rem;
+  background: rgba(15, 23, 42, 0.6);
+}
+
 .watermark-toggle {
   display: flex;
   align-items: center;

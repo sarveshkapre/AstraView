@@ -133,3 +133,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Header status line for dataset mode and performance.
+
+## [1.0.6] - 2026-02-04
+
+### Added
+- Export PNG snapshot of current view.

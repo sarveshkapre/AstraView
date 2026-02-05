@@ -73,6 +73,7 @@ type GlobeProps = {
   pointSize?: number
   externalCommand?: 'reset' | 'earth' | null
   onCommandHandled?: () => void
+  onCanvasReady?: (canvas: HTMLCanvasElement | null) => void
 }
 
 const Globe = ({
@@ -87,6 +88,7 @@ const Globe = ({
   pointSize = 0.02,
   externalCommand,
   onCommandHandled,
+  onCanvasReady,
 }: GlobeProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
@@ -126,12 +128,13 @@ const Globe = ({
     const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 100)
     camera.position.set(0, 1.6, 3.4)
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     container.appendChild(renderer.domElement)
+    onCanvasReady?.(renderer.domElement)
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
@@ -482,8 +485,9 @@ const Globe = ({
       cancelAnimationFrame(frameId)
       renderer.dispose()
       container.removeChild(renderer.domElement)
+      onCanvasReady?.(null)
     }
-  }, [initialView, onHover, onSelect, onViewChange, pointer, raycaster])
+  }, [initialView, onHover, onSelect, onViewChange, onCanvasReady, pointer, raycaster])
 
   useEffect(() => {
     objectsRef.current = objects

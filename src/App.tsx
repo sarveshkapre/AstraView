@@ -97,6 +97,7 @@ const App = () => {
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
+  const [globeCanvas, setGlobeCanvas] = useState<HTMLCanvasElement | null>(null)
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
@@ -391,6 +392,23 @@ const App = () => {
       showToast('Share link copied to clipboard.')
     } catch (error) {
       showToast('Copy failed. Use your browser menu to copy the URL.')
+    }
+  }
+
+  const handleExport = () => {
+    if (!globeCanvas) {
+      showToast('Globe not ready yet.')
+      return
+    }
+    try {
+      const dataUrl = globeCanvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `astraview-${new Date().toISOString().slice(0, 10)}.png`
+      link.click()
+      showToast('Snapshot saved.')
+    } catch {
+      showToast('Snapshot failed. Try again.')
     }
   }
 
@@ -819,6 +837,7 @@ const App = () => {
               pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
               externalCommand={globeCommand}
               onCommandHandled={() => setGlobeCommand(null)}
+              onCanvasReady={setGlobeCanvas}
             />
           </Suspense>
           {isLoading && (
@@ -981,6 +1000,9 @@ const App = () => {
             <p>Copy a link that recreates your filters, camera, and selection.</p>
             <button onClick={shareLink} type="button">
               Copy permalink
+            </button>
+            <button className="ghost" onClick={handleExport} type="button">
+              Export PNG
             </button>
           </section>
           <section className="summary">

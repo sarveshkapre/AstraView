@@ -26,6 +26,7 @@
 - Shortcut overlay is focusable and includes aria labels.
 - Focus returns to the Help icon when the dialog closes.
 - Header status line shows dataset mode and performance setting.
+- Export PNG button provides shareable snapshots.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

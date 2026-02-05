@@ -644,6 +644,10 @@ body {
   margin: 0 0 0.8rem;
 }
 
+.share button + button {
+  margin-top: 0.6rem;
+}
+
 .summary ul {
   list-style: none;
   padding: 0;

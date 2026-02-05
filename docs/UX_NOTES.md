@@ -28,6 +28,7 @@
 - Header status line shows dataset mode and performance setting.
 - Export PNG button provides shareable snapshots.
 - Snapshot toggle lets users export globe-only or full UI.
+- Watermark toggle allows branded or clean exports.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

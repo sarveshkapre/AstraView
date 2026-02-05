@@ -143,3 +143,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Snapshot mode toggle for globe-only vs full UI exports.
+
+## [1.0.8] - 2026-02-04
+
+### Added
+- Snapshot watermark toggle and branding stamp.

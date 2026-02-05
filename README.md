@@ -30,6 +30,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Header status line for dataset mode and performance.
 - Export PNG snapshots of the current view.
 - Snapshot mode toggle for globe-only vs full UI exports.
+- Snapshot watermark toggle for branded exports.
 - Shareable permalinks that encode camera, filters, time mode, and selection.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.

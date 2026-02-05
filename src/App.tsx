@@ -95,6 +95,7 @@ const App = () => {
   const [globeCommand, setGlobeCommand] = useState<'reset' | 'earth' | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [snapshotMode, setSnapshotMode] = useState<'globe' | 'full'>('globe')
+  const [snapshotWatermark, setSnapshotWatermark] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -406,10 +407,47 @@ const App = () => {
       return
     }
     try {
+      const stampWatermark = (canvas: HTMLCanvasElement) => {
+        if (!snapshotWatermark) return canvas
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return canvas
+        const padding = 20
+        const text = 'AstraView'
+        ctx.save()
+        ctx.font = '600 18px Space Grotesk, sans-serif'
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.75)'
+        ctx.shadowColor = 'rgba(2, 6, 23, 0.6)'
+        ctx.shadowBlur = 6
+        const metrics = ctx.measureText(text)
+        const x = canvas.width - metrics.width - padding
+        const y = canvas.height - padding
+        ctx.fillText(text, x, y)
+        ctx.restore()
+        return canvas
+      }
+
       if (snapshotMode === 'globe') {
         const dataUrl = globeCanvas.toDataURL('image/png')
+        const img = new Image()
+        img.src = dataUrl
+        await new Promise((resolve) => {
+          img.onload = resolve
+          img.onerror = resolve
+        })
+        const exportCanvas = document.createElement('canvas')
+        exportCanvas.width = globeCanvas.width
+        exportCanvas.height = globeCanvas.height
+        const ctx = exportCanvas.getContext('2d')
+        if (!ctx) {
+          showToast('Snapshot failed. Try again.')
+          setIsExporting(false)
+          return
+        }
+        ctx.drawImage(img, 0, 0)
+        stampWatermark(exportCanvas)
+        const finalUrl = exportCanvas.toDataURL('image/png')
         const link = document.createElement('a')
-        link.href = dataUrl
+        link.href = finalUrl
         link.download = `astraview-${new Date().toISOString().slice(0, 10)}.png`
         link.click()
         showToast('Snapshot saved.')
@@ -427,6 +465,7 @@ const App = () => {
           scale: window.devicePixelRatio || 1,
           logging: false,
         })
+        stampWatermark(canvas)
         const dataUrl = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = dataUrl
@@ -1048,6 +1087,14 @@ const App = () => {
                   Full UI
                 </button>
               </div>
+              <label className="watermark-toggle">
+                <input
+                  type="checkbox"
+                  checked={snapshotWatermark}
+                  onChange={(event) => setSnapshotWatermark(event.target.checked)}
+                />
+                Include watermark
+              </label>
             </div>
             <button className="ghost" onClick={handleExport} type="button">
               {isExporting ? 'Exporting...' : 'Export PNG'}

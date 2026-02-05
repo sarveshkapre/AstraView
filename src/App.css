@@ -653,6 +653,18 @@ body {
   color: var(--muted);
 }
 
+.watermark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #cbd5f5;
+  font-size: 0.75rem;
+}
+
+.watermark-toggle input {
+  accent-color: var(--accent);
+}
+
 .share button + button {
   margin-top: 0.6rem;
 }

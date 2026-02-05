@@ -1099,7 +1099,7 @@ const App = () => {
           <section className="share">
             <div className="section-title">Share View</div>
             <p>Copy a link that recreates your filters, camera, and selection.</p>
-            <button onClick={shareLink} type="button">
+            <button onClick={shareLink} type="button" disabled={isExporting}>
               Copy permalink
             </button>
             <div className="snapshot-toggle">
@@ -1117,6 +1117,7 @@ const App = () => {
                       applyPreset(value)
                     }
                   }}
+                  disabled={isExporting}
                 >
                   <option value="custom">Custom</option>
                   <option value="presentation">Presentation</option>
@@ -1131,6 +1132,7 @@ const App = () => {
                     id="snapshot-scale"
                     value={exportScale}
                     onChange={(event) => handleExportScaleChange(Number(event.target.value))}
+                    disabled={isExporting}
                   >
                     <option value={1}>1x</option>
                     <option value={2}>2x</option>
@@ -1145,6 +1147,7 @@ const App = () => {
                   type="button"
                   className={`chip ${snapshotMode === 'globe' ? 'active' : ''}`}
                   onClick={() => handleSnapshotModeChange('globe')}
+                  disabled={isExporting}
                 >
                   Globe only
                 </button>
@@ -1152,6 +1155,7 @@ const App = () => {
                   type="button"
                   className={`chip ${snapshotMode === 'full' ? 'active' : ''}`}
                   onClick={() => handleSnapshotModeChange('full')}
+                  disabled={isExporting}
                 >
                   Full UI
                 </button>
@@ -1161,13 +1165,15 @@ const App = () => {
                   type="checkbox"
                   checked={snapshotWatermark}
                   onChange={(event) => handleSnapshotWatermarkChange(event.target.checked)}
+                  disabled={isExporting}
                 />
                 Include watermark
               </label>
             </div>
-            <button className="ghost" onClick={handleExport} type="button">
+            <button className="ghost" onClick={handleExport} type="button" disabled={isExporting}>
               {isExporting ? 'Exporting...' : 'Export PNG'}
             </button>
+            {isExporting && <div className="export-status">Export in progress...</div>}
           </section>
           <section className="summary">
             <div className="section-title">Session Signals</div>

@@ -163,3 +163,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Export scale tooltip warning about slower 2x captures.
+
+## [1.1.2] - 2026-02-04
+
+### Added
+- Export progress indicator and disabled controls during snapshot.

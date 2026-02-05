@@ -704,6 +704,20 @@ body {
   margin-top: 0.6rem;
 }
 
+.share button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.preset-row select:disabled {
+  opacity: 0.5;
+}
+
+.export-status {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #cbd5f5;
+}
 .summary ul {
   list-style: none;
   padding: 0;

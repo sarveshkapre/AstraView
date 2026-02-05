@@ -36,6 +36,7 @@
 - Copy PNG option enables quick clipboard sharing when supported.
 - Preset hint text clarifies export behaviors.
 - Share link toast now includes current snapshot preset and scale.
+- Reset snapshot button restores default export settings.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

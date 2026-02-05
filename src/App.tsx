@@ -439,6 +439,13 @@ const App = () => {
     setSnapshotPreset('custom')
   }
 
+  const resetSnapshotSettings = () => {
+    setSnapshotPreset('custom')
+    setSnapshotMode('globe')
+    setSnapshotWatermark(true)
+    setExportScale(1)
+  }
+
   const stampWatermark = (canvas: HTMLCanvasElement) => {
     if (!snapshotWatermark) return canvas
     const ctx = canvas.getContext('2d')
@@ -1226,6 +1233,14 @@ const App = () => {
                 />
                 Include watermark
               </label>
+              <button
+                type="button"
+                className="ghost"
+                onClick={resetSnapshotSettings}
+                disabled={isExporting}
+              >
+                Reset snapshot
+              </button>
             </div>
             <button className="ghost" onClick={handleExport} type="button" disabled={isExporting}>
               {isExporting ? 'Exporting...' : 'Export PNG'}

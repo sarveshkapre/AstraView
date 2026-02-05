@@ -183,3 +183,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Share link toast includes snapshot preset + scale.
+
+## [1.1.6] - 2026-02-04
+
+### Added
+- Reset snapshot settings button.

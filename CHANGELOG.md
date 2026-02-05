@@ -138,3 +138,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Export PNG snapshot of current view.
+
+## [1.0.7] - 2026-02-04
+
+### Added
+- Snapshot mode toggle for globe-only vs full UI exports.

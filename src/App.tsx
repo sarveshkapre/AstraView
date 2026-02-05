@@ -94,6 +94,8 @@ const App = () => {
   const [nowTick, setNowTick] = useState(() => Date.now())
   const [globeCommand, setGlobeCommand] = useState<'reset' | 'earth' | null>(null)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [snapshotMode, setSnapshotMode] = useState<'globe' | 'full'>('globe')
+  const [isExporting, setIsExporting] = useState(false)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
@@ -395,20 +397,47 @@ const App = () => {
     }
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (isExporting) return
+    setIsExporting(true)
     if (!globeCanvas) {
       showToast('Globe not ready yet.')
+      setIsExporting(false)
       return
     }
     try {
-      const dataUrl = globeCanvas.toDataURL('image/png')
-      const link = document.createElement('a')
-      link.href = dataUrl
-      link.download = `astraview-${new Date().toISOString().slice(0, 10)}.png`
-      link.click()
-      showToast('Snapshot saved.')
+      if (snapshotMode === 'globe') {
+        const dataUrl = globeCanvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = dataUrl
+        link.download = `astraview-${new Date().toISOString().slice(0, 10)}.png`
+        link.click()
+        showToast('Snapshot saved.')
+      } else {
+        const target = document.querySelector<HTMLElement>('.app')
+        if (!target) {
+          showToast('Snapshot target missing.')
+          setIsExporting(false)
+          return
+        }
+        const html2canvas = (await import('html2canvas')).default
+        const canvas = await html2canvas(target, {
+          useCORS: true,
+          backgroundColor: '#05070f',
+          scale: window.devicePixelRatio || 1,
+          logging: false,
+        })
+        const dataUrl = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = dataUrl
+        link.download = `astraview-full-${new Date().toISOString().slice(0, 10)}.png`
+        link.click()
+        showToast('Full snapshot saved.')
+      }
     } catch {
       showToast('Snapshot failed. Try again.')
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -1001,8 +1030,27 @@ const App = () => {
             <button onClick={shareLink} type="button">
               Copy permalink
             </button>
+            <div className="snapshot-toggle">
+              <span>Snapshot</span>
+              <div className="chips">
+                <button
+                  type="button"
+                  className={`chip ${snapshotMode === 'globe' ? 'active' : ''}`}
+                  onClick={() => setSnapshotMode('globe')}
+                >
+                  Globe only
+                </button>
+                <button
+                  type="button"
+                  className={`chip ${snapshotMode === 'full' ? 'active' : ''}`}
+                  onClick={() => setSnapshotMode('full')}
+                >
+                  Full UI
+                </button>
+              </div>
+            </div>
             <button className="ghost" onClick={handleExport} type="button">
-              Export PNG
+              {isExporting ? 'Exporting...' : 'Export PNG'}
             </button>
           </section>
           <section className="summary">

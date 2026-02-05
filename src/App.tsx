@@ -394,7 +394,15 @@ const App = () => {
   const shareLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
-      showToast('Share link copied to clipboard.')
+      const presetLabel =
+        snapshotPreset === 'custom'
+          ? 'Custom'
+          : snapshotPreset === 'presentation'
+            ? 'Presentation'
+            : snapshotPreset === 'social'
+              ? 'Social'
+              : 'Report'
+      showToast(`Share link copied · Snapshot: ${presetLabel}, ${exportScale}x.`)
     } catch (error) {
       showToast('Copy failed. Use your browser menu to copy the URL.')
     }

@@ -178,3 +178,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Preset hint text in snapshot panel.
+
+## [1.1.5] - 2026-02-04
+
+### Added
+- Share link toast includes snapshot preset + scale.

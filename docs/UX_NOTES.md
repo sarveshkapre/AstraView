@@ -35,6 +35,7 @@
 - Exporting state disables controls and shows progress text.
 - Copy PNG option enables quick clipboard sharing when supported.
 - Preset hint text clarifies export behaviors.
+- Share link toast now includes current snapshot preset and scale.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

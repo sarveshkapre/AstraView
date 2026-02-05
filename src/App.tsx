@@ -98,6 +98,7 @@ const App = () => {
   const [snapshotWatermark, setSnapshotWatermark] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
   const [snapshotPreset, setSnapshotPreset] = useState<'custom' | 'presentation' | 'social' | 'report'>('custom')
+  const [exportScale, setExportScale] = useState(1)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
@@ -425,6 +426,11 @@ const App = () => {
     setSnapshotPreset('custom')
   }
 
+  const handleExportScaleChange = (value: number) => {
+    setExportScale(value)
+    setSnapshotPreset('custom')
+  }
+
   const handleExport = async () => {
     if (isExporting) return
     setIsExporting(true)
@@ -462,15 +468,15 @@ const App = () => {
           img.onerror = resolve
         })
         const exportCanvas = document.createElement('canvas')
-        exportCanvas.width = globeCanvas.width
-        exportCanvas.height = globeCanvas.height
+        exportCanvas.width = Math.round(globeCanvas.width * exportScale)
+        exportCanvas.height = Math.round(globeCanvas.height * exportScale)
         const ctx = exportCanvas.getContext('2d')
         if (!ctx) {
           showToast('Snapshot failed. Try again.')
           setIsExporting(false)
           return
         }
-        ctx.drawImage(img, 0, 0)
+        ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height)
         stampWatermark(exportCanvas)
         const finalUrl = exportCanvas.toDataURL('image/png')
         const link = document.createElement('a')
@@ -489,7 +495,7 @@ const App = () => {
         const canvas = await html2canvas(target, {
           useCORS: true,
           backgroundColor: '#05070f',
-          scale: window.devicePixelRatio || 1,
+          scale: exportScale * (window.devicePixelRatio || 1),
           logging: false,
         })
         stampWatermark(canvas)
@@ -1116,6 +1122,17 @@ const App = () => {
                   <option value="presentation">Presentation</option>
                   <option value="social">Social</option>
                   <option value="report">Report</option>
+                </select>
+              </div>
+              <div className="preset-row">
+                <label htmlFor="snapshot-scale">Scale</label>
+                <select
+                  id="snapshot-scale"
+                  value={exportScale}
+                  onChange={(event) => handleExportScaleChange(Number(event.target.value))}
+                >
+                  <option value={1}>1x</option>
+                  <option value={2}>2x</option>
                 </select>
               </div>
               <div className="chips">

@@ -30,6 +30,7 @@
 - Snapshot toggle lets users export globe-only or full UI.
 - Watermark toggle allows branded or clean exports.
 - Snapshot presets provide one-click export configurations.
+- Export scale option supports 1x or 2x outputs.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

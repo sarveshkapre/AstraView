@@ -153,3 +153,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Snapshot export presets.
+
+## [1.1.0] - 2026-02-04
+
+### Added
+- Export scale option (1x/2x) for snapshots.

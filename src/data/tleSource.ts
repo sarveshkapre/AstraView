@@ -4,6 +4,7 @@ import type { OrbitObject, OrbitRegime, OrbitType } from '../types'
 const EARTH_RADIUS_KM = 6371
 const MU = 398600.4418
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000
+const FETCH_TIMEOUT_MS = 12000
 
 const ACTIVE_TLE_URL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle'
 const CACHE_KEY_ACTIVE = 'astraview.tle.active.v1'
@@ -115,6 +116,20 @@ const writeCache = (payload: { fetchedAt: number; tle: string }) => {
   localStorage.setItem(CACHE_KEY_ACTIVE, JSON.stringify(payload))
 }
 
+const fetchActiveTleText = async () => {
+  const controller = new AbortController()
+  const timeout = globalThis.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    const response = await fetch(ACTIVE_TLE_URL, { signal: controller.signal })
+    if (!response.ok) {
+      throw new Error(`TLE fetch failed: ${response.status}`)
+    }
+    return await response.text()
+  } finally {
+    globalThis.clearTimeout(timeout)
+  }
+}
+
 export const loadActiveTleObjects = async () => {
   const cached = readCache()
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -125,32 +140,46 @@ export const loadActiveTleObjects = async () => {
     }
   }
 
-  const response = await fetch(ACTIVE_TLE_URL)
-  if (!response.ok) {
-    throw new Error(`TLE fetch failed: ${response.status}`)
-  }
-  const tle = await response.text()
-  const fetchedAt = Date.now()
-  writeCache({ fetchedAt, tle })
-  return {
-    objects: parseTleText(tle),
-    fetchedAt: new Date(fetchedAt),
-    source: 'network' as const,
+  try {
+    const tle = await fetchActiveTleText()
+    const fetchedAt = Date.now()
+    writeCache({ fetchedAt, tle })
+    return {
+      objects: parseTleText(tle),
+      fetchedAt: new Date(fetchedAt),
+      source: 'network' as const,
+    }
+  } catch {
+    if (cached) {
+      return {
+        objects: parseTleText(cached.tle),
+        fetchedAt: new Date(cached.fetchedAt),
+        source: 'stale-cache' as const,
+      }
+    }
+    throw new Error('TLE fetch failed and no cache was available')
   }
 }
 
-
 export const refreshActiveTleObjects = async () => {
-  const response = await fetch(ACTIVE_TLE_URL)
-  if (!response.ok) {
-    throw new Error(`TLE fetch failed: ${response.status}`)
-  }
-  const tle = await response.text()
-  const fetchedAt = Date.now()
-  writeCache({ fetchedAt, tle })
-  return {
-    objects: parseTleText(tle),
-    fetchedAt: new Date(fetchedAt),
-    source: 'network' as const,
+  try {
+    const tle = await fetchActiveTleText()
+    const fetchedAt = Date.now()
+    writeCache({ fetchedAt, tle })
+    return {
+      objects: parseTleText(tle),
+      fetchedAt: new Date(fetchedAt),
+      source: 'network' as const,
+    }
+  } catch {
+    const cached = readCache()
+    if (cached) {
+      return {
+        objects: parseTleText(cached.tle),
+        fetchedAt: new Date(cached.fetchedAt),
+        source: 'stale-cache' as const,
+      }
+    }
+    throw new Error('TLE refresh failed and no cache was available')
   }
 }

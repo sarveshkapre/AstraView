@@ -110,6 +110,7 @@ const Globe = ({
   const selectedMarkerRef = useRef<THREE.Mesh | null>(null)
   const hoverMarkerRef = useRef<THREE.Mesh | null>(null)
   const updateTimeRef = useRef<number>(0)
+  const selectedIdRef = useRef<string | null | undefined>(selectedId)
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const pointer = useMemo(() => new THREE.Vector2(), [])
@@ -117,6 +118,10 @@ const Globe = ({
   useEffect(() => {
     timeRef.current = timeSeconds
   }, [timeSeconds])
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId
+  }, [selectedId])
 
   useEffect(() => {
     const container = containerRef.current
@@ -435,8 +440,8 @@ const Globe = ({
         terminatorMaterialRef.current.uniforms.lightDir.value.copy(key.position).normalize()
       }
 
-      if (selectedMarkerRef.current && selectedId) {
-        const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
+      if (selectedMarkerRef.current && selectedIdRef.current) {
+        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdRef.current)
         if (selectedObject) {
           const position = positionForObject(selectedObject, timeRef.current)
           if (position) {
@@ -450,8 +455,8 @@ const Globe = ({
         }
       }
 
-      if (trailLineRef.current && selectedId && shouldUpdate) {
-        const selectedObject = objectsRef.current.find((object) => object.id === selectedId)
+      if (trailLineRef.current && selectedIdRef.current && shouldUpdate) {
+        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdRef.current)
         if (selectedObject) {
           const positions = trailLineRef.current.geometry.attributes.position.array as Float32Array
           const segments = positions.length / 3

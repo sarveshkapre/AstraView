@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
 import { loadActiveTleObjects, refreshActiveTleObjects } from './data/tleSource'
 import type {
@@ -9,6 +9,7 @@ import type {
   AltitudeBand,
   ViewState,
   TimeState,
+  SnapshotPreset,
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
@@ -45,6 +46,8 @@ const defaultFilters = (): FiltersState => ({
 })
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
+type TleSourceMode = 'network' | 'cache' | 'stale-cache' | 'fallback'
+
 const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
   all: 'All cataloged objects',
   payloads: 'Satellites (payloads only)',
@@ -73,6 +76,7 @@ const App = () => {
   const syntheticObjects = useMemo(() => generateObjects(58), [])
   const [tleObjects, setTleObjects] = useState<OrbitObject[]>([])
   const [tleStatus, setTleStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [tleSourceMode, setTleSourceMode] = useState<TleSourceMode>('fallback')
   const [tleMessage, setTleMessage] = useState<string | null>(null)
   const [invalidTleCount, setInvalidTleCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
@@ -82,6 +86,7 @@ const App = () => {
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null)
   const [timeState, setTimeState] = useState<TimeState>({ mode: 'live', speed: 1 })
   const [timeSeconds, setTimeSeconds] = useState(0)
+  const timeSecondsRef = useRef(0)
   const [viewState, setViewState] = useState<ViewState | undefined>(undefined)
   const [focusObject, setFocusObject] = useState<OrbitObject | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -97,12 +102,14 @@ const App = () => {
   const [snapshotMode, setSnapshotMode] = useState<'globe' | 'full'>('globe')
   const [snapshotWatermark, setSnapshotWatermark] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
-  const [snapshotPreset, setSnapshotPreset] = useState<'custom' | 'presentation' | 'social' | 'report'>('custom')
-  const [exportScale, setExportScale] = useState(1)
+  const [snapshotPreset, setSnapshotPreset] = useState<SnapshotPreset>('custom')
+  const [exportScale, setExportScale] = useState<1 | 2>(1)
+  const [inspectedCount, setInspectedCount] = useState(0)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
   const [globeCanvas, setGlobeCanvas] = useState<HTMLCanvasElement | null>(null)
+  const inspectedIdsRef = useRef(new Set<string>())
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
 
@@ -113,6 +120,12 @@ const App = () => {
     if (urlState.selectedId) setPendingSelectedId(urlState.selectedId)
     if (urlState.time) setTimeState(urlState.time)
     if (urlState.view) setViewState(urlState.view)
+    if (urlState.snapshot) {
+      setSnapshotMode(urlState.snapshot.mode)
+      setSnapshotWatermark(urlState.snapshot.watermark)
+      setSnapshotPreset(urlState.snapshot.preset)
+      setExportScale(urlState.snapshot.scale)
+    }
   }, [])
 
   useEffect(() => {
@@ -136,9 +149,23 @@ const App = () => {
   }, [])
 
   useEffect(() => {
+    timeSecondsRef.current = timeSeconds
+  }, [timeSeconds])
+
+  useEffect(
+    () => () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current)
+      }
+    },
+    [],
+  )
+
+  useEffect(() => {
     let cancelled = false
     const load = async () => {
       setTleStatus('loading')
+      setTleSourceMode('fallback')
       setTleMessage(null)
       try {
         const result = await loadActiveTleObjects()
@@ -147,10 +174,15 @@ const App = () => {
         setInvalidTleCount(invalidCount)
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
+        setTleSourceMode(result.source)
         setTleStatus('ready')
+        if (result.source === 'stale-cache') {
+          setTleMessage('Live fetch failed. Showing stale cached catalog.')
+        }
       } catch {
         if (cancelled) return
         setTleStatus('error')
+        setTleSourceMode('fallback')
         setTleMessage('Live catalog unavailable. Using cached or demo data.')
       }
     }
@@ -162,7 +194,7 @@ const App = () => {
 
   useEffect(() => {
     let frame = 0
-    let start = performance.now()
+    const start = performance.now()
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick)
       const elapsed = (now - start) / 1000
@@ -193,6 +225,10 @@ const App = () => {
     if (!pendingSelectedId || selected) return
     const match = baseObjects.find((object) => object.id === pendingSelectedId || object.noradId.toString() === pendingSelectedId)
     if (match) {
+      if (!inspectedIdsRef.current.has(match.id)) {
+        inspectedIdsRef.current.add(match.id)
+        setInspectedCount(inspectedIdsRef.current.size)
+      }
       setSelected(match)
       setFocusObject(match)
       setPendingSelectedId(null)
@@ -271,21 +307,30 @@ const App = () => {
   }, [filteredObjects, selected])
 
   useEffect(() => {
-    if (selected && !filteredObjects.some((object) => object.id === selected.id)) {
-      setSelected(null)
-      setFocusObject(null)
-    }
-  }, [filteredObjects, selected])
-
-  useEffect(() => {
     serializeUrlState({
       filters,
       selectedId: selected?.id,
       search: searchTerm,
       view: viewState,
       time: timeState,
+      snapshot: {
+        mode: snapshotMode,
+        watermark: snapshotWatermark,
+        preset: snapshotPreset,
+        scale: exportScale,
+      },
     })
-  }, [filters, searchTerm, selected, viewState, timeState])
+  }, [
+    exportScale,
+    filters,
+    searchTerm,
+    selected,
+    snapshotMode,
+    snapshotPreset,
+    snapshotWatermark,
+    viewState,
+    timeState,
+  ])
 
   const searchResults = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
@@ -306,18 +351,42 @@ const App = () => {
   const lastUpdatedLabel = hasFreshness
     ? lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     : 'Unknown'
+  const sourcePrefix =
+    tleSourceMode === 'network'
+      ? 'CelesTrak active satellites (live)'
+      : tleSourceMode === 'cache'
+        ? 'CelesTrak active satellites (cached)'
+        : tleSourceMode === 'stale-cache'
+          ? 'CelesTrak active satellites (stale cache)'
+          : 'Synthetic demo catalog'
   const dataSourceLabel =
     tleStatus === 'ready'
       ? filters.dataset === 'payloads'
-        ? 'CelesTrak active satellites (TLE)'
-        : 'CelesTrak active satellites + synthetic non-payloads'
+        ? sourcePrefix
+        : `${sourcePrefix} + synthetic non-payloads`
       : 'Synthetic demo catalog'
   const dataStatusLabel =
     tleStatus === 'loading'
       ? 'Fetching live TLE...'
       : tleStatus === 'error'
         ? 'Live fetch failed, using cached or demo data.'
-        : 'Live catalog ready.'
+        : tleSourceMode === 'network'
+          ? 'Live catalog ready.'
+          : tleSourceMode === 'cache'
+            ? 'Fresh cache loaded.'
+            : tleSourceMode === 'stale-cache'
+              ? 'Stale cache loaded after live fetch failure.'
+              : 'Demo catalog ready.'
+  const healthLabel =
+    tleStatus === 'loading'
+      ? 'Loading live'
+      : tleStatus === 'error'
+        ? 'Fallback'
+        : tleStatus === 'ready'
+          ? tleSourceMode === 'network'
+            ? 'Live'
+            : 'Cached'
+          : 'Idle'
 
   const coverage = useMemo(() => {
     const livePayloads = baseObjects.filter((object) => object.source === 'tle').length
@@ -328,7 +397,14 @@ const App = () => {
     return { livePayloads, syntheticObjects, payloads, nonPayloads, invalidTle }
   }, [baseObjects, invalidTleCount, tleStatus])
 
+  const recordInspection = useCallback((object: OrbitObject) => {
+    if (inspectedIdsRef.current.has(object.id)) return
+    inspectedIdsRef.current.add(object.id)
+    setInspectedCount(inspectedIdsRef.current.size)
+  }, [])
+
   const handleSelect = (object: OrbitObject | null) => {
+    if (object) recordInspection(object)
     setSelected(object)
     setFocusObject(object)
   }
@@ -403,7 +479,7 @@ const App = () => {
               ? 'Social'
               : 'Report'
       showToast(`Share link copied · Snapshot: ${presetLabel}, ${exportScale}x.`)
-    } catch (error) {
+    } catch {
       showToast('Copy failed. Use your browser menu to copy the URL.')
     }
   }
@@ -435,7 +511,7 @@ const App = () => {
   }
 
   const handleExportScaleChange = (value: number) => {
-    setExportScale(value)
+    setExportScale(value === 2 ? 2 : 1)
     setSnapshotPreset('custom')
   }
 
@@ -564,7 +640,6 @@ const App = () => {
         canvas.toBlob((result) => resolve(result), 'image/png'),
       )
       if (!blob) throw new Error('No blob')
-      // @ts-ignore ClipboardItem is not in all TS lib targets
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
       showToast('Snapshot copied to clipboard.')
     } catch {
@@ -574,15 +649,15 @@ const App = () => {
     }
   }
 
-  const handleTimeToggle = () => {
+  const handleTimeToggle = useCallback(() => {
     setTimeState((prev) => {
       if (prev.mode === 'live') {
-        const nextPaused = Math.min(timeSeconds, 6000)
+        const nextPaused = Math.min(timeSecondsRef.current, 6000)
         return { mode: 'paused', pausedAtSec: nextPaused, speed: prev.speed ?? 1 }
       }
       return { mode: 'live', speed: prev.speed ?? 1 }
     })
-  }
+  }, [])
 
   const handleNow = () => {
     setTimeState((prev) => ({ mode: 'live', speed: prev.speed ?? 1 }))
@@ -602,24 +677,31 @@ const App = () => {
   }
 
   const handleSearchSelect = (object: OrbitObject) => {
+    recordInspection(object)
     setSelected(object)
     setFocusObject(object)
   }
 
-  const handleResetView = () => setGlobeCommand('reset')
-  const handleFocusEarth = () => setGlobeCommand('earth')
-
-  const handlePausePlay = () => {
+  const handleResetView = useCallback(() => setGlobeCommand('reset'), [])
+  const handleFocusEarth = useCallback(() => setGlobeCommand('earth'), [])
+  const handlePausePlay = useCallback(() => {
     handleTimeToggle()
-  }
+  }, [handleTimeToggle])
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return
       }
+      if (showShortcuts) {
+        if (event.key === 'Escape') {
+          setShowShortcuts(false)
+        }
+        return
+      }
       if (event.key === '?' || (event.shiftKey && event.key === '/')) {
         setShowShortcuts((prev) => !prev)
+        return
       }
       if (event.key === ' ') {
         event.preventDefault()
@@ -635,13 +717,10 @@ const App = () => {
         event.preventDefault()
         searchInputRef.current?.focus()
       }
-      if (event.key === 'Escape') {
-        setShowShortcuts(false)
-      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [handlePausePlay, handleResetView, handleFocusEarth])
+  }, [handleFocusEarth, handlePausePlay, handleResetView, showShortcuts])
 
   useEffect(() => {
     if (!showShortcuts) return
@@ -665,6 +744,7 @@ const App = () => {
       return
     }
     setTleStatus('loading')
+    setTleSourceMode('fallback')
     setTleMessage(null)
     try {
       const result = await refreshActiveTleObjects()
@@ -672,14 +752,21 @@ const App = () => {
       setInvalidTleCount(invalidCount)
       setTleObjects(result.objects)
       setLastUpdated(result.fetchedAt)
+      setTleSourceMode(result.source)
       setTleStatus('ready')
-      showToast(
-        invalidCount > 0
-          ? `Live catalog refreshed. ${invalidCount} TLEs skipped.`
-          : 'Live catalog refreshed.',
-      )
+      if (result.source === 'stale-cache') {
+        setTleMessage('Refresh failed. Showing stale cached catalog.')
+        showToast('Live refresh failed. Showing stale cached data.')
+      } else {
+        showToast(
+          invalidCount > 0
+            ? `Live catalog refreshed. ${invalidCount} TLEs skipped.`
+            : 'Live catalog refreshed.',
+        )
+      }
     } catch {
       setTleStatus('error')
+      setTleSourceMode('fallback')
       setTleMessage('Refresh failed. Using cached or demo data.')
       showToast('Refresh failed. Using cached data.')
     }
@@ -689,7 +776,17 @@ const App = () => {
     <div className="app">
       <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
       {showShortcuts && (
-        <div className="shortcut-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+        <div
+          className="shortcut-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard shortcuts"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowShortcuts(false)
+            }
+          }}
+        >
           <div className="shortcut-card" tabIndex={-1}>
             <div className="shortcut-header">
               <div className="shortcut-title">Keyboard Shortcuts</div>
@@ -777,15 +874,7 @@ const App = () => {
         <div className="meta">
           <div className={`health ${tleStatus}`}>
             <span className="dot" />
-            {tleStatus === 'loading'
-              ? 'Loading live'
-              : tleStatus === 'ready'
-                ? isOnline
-                  ? 'Live'
-                  : 'Cached'
-                : tleStatus === 'error'
-                  ? 'Fallback'
-                  : 'Idle'}
+            {healthLabel}
           </div>
           <div className="status-line">
             <span>Mode: {filters.dataset === 'payloads' ? 'Satellites' : 'All Objects'}</span>
@@ -1159,7 +1248,7 @@ const App = () => {
           </section>
           <section className="share">
             <div className="section-title">Share View</div>
-            <p>Copy a link that recreates your filters, camera, and selection.</p>
+            <p>Copy a link that recreates your filters, camera, selection, and snapshot settings.</p>
             <button onClick={shareLink} type="button" disabled={isExporting}>
               Copy permalink
             </button>
@@ -1254,7 +1343,7 @@ const App = () => {
             <div className="section-title">Session Signals</div>
             <ul>
               <li>Meaningful action time: {searchTerm || selected ? 'Active' : 'Awaiting'}</li>
-              <li>Objects inspected: {selected ? 1 : 0}</li>
+              <li>Objects inspected: {inspectedCount}</li>
               <li>Filters active: {getActiveFiltersCount(filters)}</li>
             </ul>
           </section>

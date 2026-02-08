@@ -1,4 +1,32 @@
-import type { FiltersState, OrbitRegime, OrbitType, ViewState, TimeState } from '../types'
+import type {
+  FiltersState,
+  OrbitRegime,
+  OrbitType,
+  ViewState,
+  TimeState,
+  SnapshotState,
+  SnapshotPreset,
+} from '../types'
+
+const ALL_REGIMES: OrbitRegime[] = ['LEO', 'MEO', 'GEO']
+const ALL_TYPES: OrbitType[] = ['Payload', 'Rocket Body', 'Debris']
+const ALL_ALTITUDE_BANDS: FiltersState['altitudeBand'][] = [
+  'All',
+  '<500km',
+  '500-1200km',
+  '1200-20000km',
+  '20000km+',
+]
+const ALL_PERFORMANCE_MODES: FiltersState['performance'][] = ['high', 'balanced', 'low']
+const SNAPSHOT_PRESET_KEYS: Record<SnapshotPreset, string> = {
+  custom: 'c',
+  presentation: 'p',
+  social: 's',
+  report: 'r',
+}
+const SNAPSHOT_PRESET_FROM_KEY = new Map(
+  Object.entries(SNAPSHOT_PRESET_KEYS).map(([preset, key]) => [key, preset as SnapshotPreset]),
+)
 
 const parseList = (value: string | null) =>
   value
@@ -21,6 +49,7 @@ export type UrlState = {
   search?: string
   view?: ViewState
   time?: TimeState
+  snapshot?: SnapshotState
 }
 
 export const parseUrlState = (): UrlState => {
@@ -31,7 +60,13 @@ export const parseUrlState = (): UrlState => {
   const constellations = parseList(params.get('c'))
   const altitudeBand = params.get('a')
   const dataset = params.get('ds') === 'p' ? 'payloads' : 'all'
-  const performance = params.get('pf') === 'h' ? 'high' : params.get('pf') === 'l' ? 'low' : 'balanced'
+  const performanceParam = params.get('pf')
+  const performance: FiltersState['performance'] =
+    performanceParam === 'h'
+      ? 'high'
+      : performanceParam === 'l'
+        ? 'low'
+        : 'balanced'
   const search = params.get('q') ?? undefined
   const selectedId = params.get('s')
 
@@ -54,16 +89,34 @@ export const parseUrlState = (): UrlState => {
           : undefined
 
   const filters: FiltersState = {
-    regimes: new Set(regimes),
-    types: new Set(types),
+    regimes: new Set(regimes.length > 0 ? regimes : ALL_REGIMES),
+    types: new Set(types.length > 0 ? types : ALL_TYPES),
     constellations: new Set(constellations),
-    altitudeBand: (altitudeBand as FiltersState['altitudeBand']) ?? 'All',
+    altitudeBand: ALL_ALTITUDE_BANDS.includes(altitudeBand as FiltersState['altitudeBand'])
+      ? (altitudeBand as FiltersState['altitudeBand'])
+      : 'All',
     dataset,
-    performance,
+    performance: ALL_PERFORMANCE_MODES.includes(performance) ? performance : 'balanced',
   }
 
   if (filters.dataset === 'payloads' && !filters.types.has('Payload')) {
     filters.types = new Set<OrbitType>(['Payload'])
+  }
+
+  const snapshotModeParam = params.get('xm')
+  const snapshotPresetParam = params.get('xp')
+  const snapshotScaleParam = Number(params.get('xs'))
+  const snapshotWatermarkParam = params.get('xw')
+
+  const snapshotMode: SnapshotState['mode'] = snapshotModeParam === 'f' ? 'full' : 'globe'
+  const snapshotPreset = SNAPSHOT_PRESET_FROM_KEY.get(snapshotPresetParam ?? '') ?? 'custom'
+  const snapshotScale: SnapshotState['scale'] = snapshotScaleParam === 2 ? 2 : 1
+  const snapshotWatermark = snapshotWatermarkParam === '0' ? false : true
+  const snapshot: SnapshotState = {
+    mode: snapshotMode,
+    preset: snapshotPreset,
+    scale: snapshotScale,
+    watermark: snapshotWatermark,
   }
 
   return {
@@ -72,6 +125,7 @@ export const parseUrlState = (): UrlState => {
     search,
     view,
     time,
+    snapshot,
   }
 }
 
@@ -105,7 +159,7 @@ export const serializeUrlState = (state: UrlState) => {
 
   if (state.time) {
     params.set('tm', state.time.mode === 'paused' ? 'p' : 'l')
-    if (state.time.mode === 'paused' && state.time.pausedAtSec) {
+    if (state.time.mode === 'paused' && state.time.pausedAtSec !== undefined) {
       params.set('tt', Math.round(state.time.pausedAtSec).toString())
     }
     if (state.time.speed && state.time.speed !== 1) {
@@ -113,6 +167,22 @@ export const serializeUrlState = (state: UrlState) => {
     }
   }
 
-  const url = `${window.location.pathname}?${params.toString()}`
+  if (state.snapshot) {
+    if (state.snapshot.mode !== 'globe') {
+      params.set('xm', state.snapshot.mode === 'full' ? 'f' : 'g')
+    }
+    if (state.snapshot.preset !== 'custom') {
+      params.set('xp', SNAPSHOT_PRESET_KEYS[state.snapshot.preset])
+    }
+    if (state.snapshot.scale !== 1) {
+      params.set('xs', state.snapshot.scale.toString())
+    }
+    if (!state.snapshot.watermark) {
+      params.set('xw', '0')
+    }
+  }
+
+  const query = params.toString()
+  const url = query ? `${window.location.pathname}?${query}` : window.location.pathname
   window.history.replaceState({}, '', url)
 }

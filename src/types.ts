@@ -44,3 +44,12 @@ export type TimeState = {
   pausedAtSec?: number
   speed?: number
 }
+
+export type SnapshotPreset = 'custom' | 'presentation' | 'social' | 'report'
+
+export type SnapshotState = {
+  mode: 'globe' | 'full'
+  watermark: boolean
+  scale: 1 | 2
+  preset: SnapshotPreset
+}

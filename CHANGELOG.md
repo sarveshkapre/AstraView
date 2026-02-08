@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-02-08
+
+### Added
+- Share permalinks now persist snapshot settings (mode, watermark, preset, scale).
+- GitHub Actions CI workflow for lint + build on `main`.
+
+### Changed
+- TLE fetch pipeline now applies a request timeout and returns stale cache on live fetch failures.
+- Trust panel and health labeling now distinguish live, cache, stale-cache, and fallback behavior.
+- Session Signals now track cumulative objects inspected during a session.
+
+### Fixed
+- URL filter parsing now defaults to full regime/type selections on first load.
+- Duplicate selection-reset effect removed from `src/App.tsx`.
+- Lint scope no longer includes unrelated nested project files.
+
 ## [0.1.0] - 2026-02-04
 
 ### Added

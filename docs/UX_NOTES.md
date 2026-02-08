@@ -36,7 +36,9 @@
 - Copy PNG option enables quick clipboard sharing when supported.
 - Preset hint text clarifies export behaviors.
 - Share link toast now includes current snapshot preset and scale.
+- Permalink state now restores snapshot preset, scale, watermark, and mode.
 - Reset snapshot button restores default export settings.
+- Shortcut dialog closes on backdrop click and ignores unrelated shortcuts while open.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

@@ -18,7 +18,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Day/night terminator glow and shader-based night lights.
 - Earth day/night textures and normal mapping for surface detail.
 - Cloud layer and atmospheric limb glow for depth.
-- Live TLE ingestion (CelesTrak active satellites) with caching and offline fallback.
+- Live TLE ingestion (CelesTrak active satellites) with timeout handling, caching, and stale-cache fallback.
 - Manual refresh control for the live catalog.
 - Data coverage stats for live vs synthetic objects.
 - Live/cache/fallback health badge in the header.
@@ -33,7 +33,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Snapshot watermark toggle for branded exports.
 - Snapshot presets for quick export configs.
 - Export scale option for higher-resolution PNGs.
-- Shareable permalinks that encode camera, filters, time mode, and selection.
+- Shareable permalinks that encode camera, filters, time mode, selection, and snapshot settings.
 - Trust panel with definitions, freshness, and limitations.
 - Zoom-aware density mode with offline-safe cached dataset indicator.
 

@@ -16,6 +16,7 @@
 
 ## Data Pipeline
 - `src/data/tleSource.ts` downloads TLE text, caches for 6 hours, and parses to `OrbitObject`.
+- Live fetches use an abort timeout guard; failed refreshes can fall back to stale cache before synthetic-only mode.
 - `satellite.js` propagates TLE objects to ECEF for rendering on the globe.
 - Manual refresh bypasses cache and updates the dataset immediately.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
@@ -23,6 +24,7 @@
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.
+- Snapshot mode, watermark, scale, and preset are encoded in URL query params for reproducible exports.
 - URL state is updated via `history.replaceState`.
 
 ## Performance

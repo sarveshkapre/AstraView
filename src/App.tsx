@@ -258,21 +258,31 @@ const App = () => {
   }, [filters.catalogGroup, isOnline])
 
   useEffect(() => {
+    if (timeState.mode !== 'live') {
+      setTimeSeconds(timeState.pausedAtSec ?? 0)
+      return
+    }
+
     let frame = 0
-    const start = performance.now()
+    let last = performance.now()
+    const speed = timeState.speed ?? 1
+
     const tick = (now: number) => {
       frame = requestAnimationFrame(tick)
-      const elapsed = (now - start) / 1000
-      const speed = timeState.speed ?? 1
-      if (timeState.mode === 'live') {
-        setTimeSeconds(elapsed * speed)
-      } else if (timeState.pausedAtSec !== undefined) {
-        setTimeSeconds(timeState.pausedAtSec)
+
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        last = now
+        return
       }
+
+      const dt = Math.min(0.25, (now - last) / 1000)
+      last = now
+      setTimeSeconds((prev) => prev + dt * speed)
     }
+
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [timeState])
+  }, [timeState.mode, timeState.pausedAtSec, timeState.speed])
 
   const baseObjects = useMemo(() => {
     if (filters.dataset === 'payloads') {
@@ -1328,6 +1338,7 @@ const App = () => {
             <Globe
               objects={displayObjects}
               timeSeconds={timeSeconds}
+              animateTime={timeState.mode === 'live'}
               selectedId={selected?.id}
               onHover={handleHover}
               onSelect={handleSelect}

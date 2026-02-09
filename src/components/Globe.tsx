@@ -64,6 +64,7 @@ const getColor = (object: OrbitObject) => {
 type GlobeProps = {
   objects: OrbitObject[]
   timeSeconds: number
+  animateTime?: boolean
   selectedId?: string | null
   onHover: (object: OrbitObject | null, screen: { x: number; y: number } | null) => void
   onSelect: (object: OrbitObject | null) => void
@@ -79,6 +80,7 @@ type GlobeProps = {
 const Globe = ({
   objects,
   timeSeconds,
+  animateTime = true,
   selectedId,
   onHover,
   onSelect,
@@ -105,12 +107,15 @@ const Globe = ({
   const objectsRef = useRef<OrbitObject[]>([])
   const hoverRef = useRef<OrbitObject | null>(null)
   const timeRef = useRef<number>(timeSeconds)
+  const animateTimeRef = useRef<boolean>(animateTime)
+  const lastVisualTimeRef = useRef<number>(Number.NaN)
   const orbitLineRef = useRef<THREE.Line | null>(null)
   const trailLineRef = useRef<THREE.Line | null>(null)
   const selectedMarkerRef = useRef<THREE.Mesh | null>(null)
   const hoverMarkerRef = useRef<THREE.Mesh | null>(null)
   const updateTimeRef = useRef<number>(0)
   const selectedIdRef = useRef<string | null | undefined>(selectedId)
+  const lastSelectedIdRef = useRef<string | null | undefined>(selectedId)
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const pointer = useMemo(() => new THREE.Vector2(), [])
@@ -118,6 +123,10 @@ const Globe = ({
   useEffect(() => {
     timeRef.current = timeSeconds
   }, [timeSeconds])
+
+  useEffect(() => {
+    animateTimeRef.current = animateTime
+  }, [animateTime])
 
   useEffect(() => {
     selectedIdRef.current = selectedId
@@ -407,13 +416,21 @@ const Globe = ({
       frameId = requestAnimationFrame(animate)
       if (!sceneRef.current || !cameraRef.current || !rendererRef.current || !controlsRef.current) return
 
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return
+      }
+
       const now = performance.now()
       const shouldUpdate = now - updateTimeRef.current > 80
-      if (geometryRef.current && shouldUpdate) {
+      const timeValue = timeRef.current
+      const timeChanged = timeValue !== lastVisualTimeRef.current
+      const shouldAdvanceTime = animateTimeRef.current || timeChanged
+
+      if (geometryRef.current && shouldUpdate && shouldAdvanceTime) {
         updateTimeRef.current = now
         const positions = geometryRef.current.attributes.position.array as Float32Array
         objectsRef.current.forEach((object, index) => {
-          const position = positionForObject(object, timeRef.current)
+          const position = positionForObject(object, timeValue)
           if (!position) return
           const offset = index * 3
           positions[offset] = position.x
@@ -421,16 +438,19 @@ const Globe = ({
           positions[offset + 2] = position.z
         })
         geometryRef.current.attributes.position.needsUpdate = true
+        lastVisualTimeRef.current = timeValue
       }
 
-      if (earthGroupRef.current) {
-        earthGroupRef.current.rotation.y = timeRef.current * 0.03
-      }
-      if (cloudsRef.current) {
-        cloudsRef.current.rotation.y = timeRef.current * 0.035
-      }
-      if (atmosphereRef.current) {
-        atmosphereRef.current.rotation.y = timeRef.current * 0.01
+      if (shouldAdvanceTime) {
+        if (earthGroupRef.current) {
+          earthGroupRef.current.rotation.y = timeValue * 0.03
+        }
+        if (cloudsRef.current) {
+          cloudsRef.current.rotation.y = timeValue * 0.035
+        }
+        if (atmosphereRef.current) {
+          atmosphereRef.current.rotation.y = timeValue * 0.01
+        }
       }
 
       if (nightMaterialRef.current) {
@@ -440,10 +460,14 @@ const Globe = ({
         terminatorMaterialRef.current.uniforms.lightDir.value.copy(key.position).normalize()
       }
 
-      if (selectedMarkerRef.current && selectedIdRef.current) {
-        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdRef.current)
+      const selectedIdValue = selectedIdRef.current
+      const selectedChanged = selectedIdValue !== lastSelectedIdRef.current
+      if (selectedChanged) lastSelectedIdRef.current = selectedIdValue
+
+      if (selectedMarkerRef.current && selectedIdValue && (shouldAdvanceTime || selectedChanged)) {
+        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdValue)
         if (selectedObject) {
-          const position = positionForObject(selectedObject, timeRef.current)
+          const position = positionForObject(selectedObject, timeValue)
           if (position) {
             selectedMarkerRef.current.position.copy(position)
             selectedMarkerRef.current.visible = true
@@ -453,16 +477,18 @@ const Globe = ({
         } else {
           selectedMarkerRef.current.visible = false
         }
+      } else if (selectedMarkerRef.current && !selectedIdValue && selectedMarkerRef.current.visible) {
+        selectedMarkerRef.current.visible = false
       }
 
-      if (trailLineRef.current && selectedIdRef.current && shouldUpdate) {
-        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdRef.current)
+      if (trailLineRef.current && selectedIdValue && shouldUpdate && shouldAdvanceTime) {
+        const selectedObject = objectsRef.current.find((object) => object.id === selectedIdValue)
         if (selectedObject) {
           const positions = trailLineRef.current.geometry.attributes.position.array as Float32Array
           const segments = positions.length / 3
           const trailSeconds = 1800
           for (let i = 0; i < segments; i += 1) {
-            const t = timeRef.current - (trailSeconds * (segments - 1 - i)) / (segments - 1)
+            const t = timeValue - (trailSeconds * (segments - 1 - i)) / (segments - 1)
             const pos = positionForObject(selectedObject, t)
             if (!pos) continue
             const offset = i * 3

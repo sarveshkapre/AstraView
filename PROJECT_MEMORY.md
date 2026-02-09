@@ -16,7 +16,7 @@
 - Template: YYYY-MM-DD | Decision | Why | Evidence (tests/logs) | Commit | Confidence (high/medium/low) | Trust (trusted/untrusted)
 - 2026-02-09 | Add Vitest unit tests for URL-state + run tests in CI; scope test discovery to AstraView `src/` | Prevent permalink regressions and avoid nested-project test noise in this workspace | `npm run test` (pass) | a4a48b3 | high | trusted
 - 2026-02-09 | Expand “Session Signals” to include time-to-first-action + share/export counters (local-only) | Align the UI with success metrics and make sessions easier to reason about during iteration | `npm run build` (pass); manual `npm run preview` + HTTP 200 | 0a5f3d5 | medium | trusted
-- 2026-02-09 | Align `package.json` version with `CHANGELOG.md` (release tracking) | Keep releases and dependency metadata consistent for production ops | `package.json`, `CHANGELOG.md` updated | (see release commit) | high | trusted
+- 2026-02-09 | Align `package.json` version with `CHANGELOG.md` (release tracking) | Keep releases and dependency metadata consistent for production ops | `package.json`, `CHANGELOG.md` updated | 1600468 | high | trusted
 
 ## Mistakes And Fixes
 - Template: YYYY-MM-DD | Issue | Root cause | Fix | Prevention rule | Commit | Confidence

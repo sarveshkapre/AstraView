@@ -883,3 +883,107 @@ input:focus {
     width: 180px;
   }
 }
+
+.mobile-dock {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(0.85rem + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(18px);
+  z-index: 70;
+}
+
+.dock-button {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(12, 18, 32, 0.6);
+  color: #e2e8f0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dock-button.active {
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+.dock-badge {
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #e2e8f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  min-width: 22px;
+  text-align: center;
+}
+
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 7, 15, 0.72);
+  z-index: 55;
+}
+
+.app.compact .globe-overlay {
+  bottom: calc(1rem + 3.6rem + env(safe-area-inset-bottom));
+}
+
+.app.compact .panel.left,
+.app.compact .panel.right {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(1rem + 3.6rem + env(safe-area-inset-bottom));
+  max-height: calc(100vh - 7.5rem);
+  overflow: auto;
+  z-index: 60;
+  transform: translateY(120%);
+  transition: transform 0.22s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app.compact.drawer-filters .panel.left {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app.compact.drawer-inspect .panel.right {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-panel-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(8, 12, 24, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: 2;
+}
+
+.mobile-panel-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}

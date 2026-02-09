@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2026-02-09
+
+### Added
+- Compact mobile drawer mode for Filters/Trust and Inspect/Share panels to keep the globe-first experience on small screens.
+
 ## [1.3.0] - 2026-02-09
 
 ### Added

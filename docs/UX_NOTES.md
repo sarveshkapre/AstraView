@@ -10,6 +10,7 @@
 - Orbit control: click-drag to rotate, scroll to zoom.
 - Search and filters update instantly.
 - Hover = tooltip, click = selection + orbit path.
+- On small screens, Filters/Trust and Inspect/Share panels live in a compact drawer so the globe stays primary.
 - Loading overlay appears briefly on startup to confirm activity.
 - Time scrubber allows manual inspection of a fixed window.
 - Dataset toggle switches between payloads-only and all cataloged objects.

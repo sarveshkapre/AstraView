@@ -116,10 +116,19 @@ const App = () => {
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
+  const mobileLastFocusRef = useRef<HTMLElement | null>(null)
   const [globeCanvas, setGlobeCanvas] = useState<HTMLCanvasElement | null>(null)
   const inspectedIdsRef = useRef(new Set<string>())
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
+
+  const [isCompact, setIsCompact] = useState(() =>
+    typeof window !== 'undefined' && 'matchMedia' in window
+      ? window.matchMedia('(max-width: 860px)').matches
+      : false,
+  )
+  const [mobileDrawer, setMobileDrawer] = useState<'none' | 'filters' | 'inspect'>('none')
+  const mobileCloseRef = useRef<HTMLButtonElement | null>(null)
 
   const recordMeaningfulAction = useCallback(() => {
     setFirstActionAtMs((prev) => prev ?? Date.now())
@@ -154,6 +163,35 @@ const App = () => {
       window.removeEventListener('offline', updateOnline)
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('matchMedia' in window)) return
+    const query = window.matchMedia('(max-width: 860px)')
+    const handleChange = (event: MediaQueryListEvent) => setIsCompact(event.matches)
+    setIsCompact(query.matches)
+    query.addEventListener('change', handleChange)
+    return () => query.removeEventListener('change', handleChange)
+  }, [])
+
+  useEffect(() => {
+    if (!isCompact) {
+      setMobileDrawer('none')
+    }
+  }, [isCompact])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (mobileDrawer === 'none') {
+      document.body.style.overflow = ''
+      mobileLastFocusRef.current?.focus?.()
+      mobileLastFocusRef.current = null
+      return
+    }
+    mobileLastFocusRef.current = document.activeElement as HTMLElement | null
+    document.body.style.overflow = 'hidden'
+    const timer = window.setTimeout(() => mobileCloseRef.current?.focus(), 0)
+    return () => window.clearTimeout(timer)
+  }, [mobileDrawer])
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 5000)
@@ -733,6 +771,12 @@ const App = () => {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return
       }
+      if (mobileDrawer !== 'none') {
+        if (event.key === 'Escape') {
+          setMobileDrawer('none')
+        }
+        return
+      }
       if (showShortcuts) {
         if (event.key === 'Escape') {
           setShowShortcuts(false)
@@ -760,7 +804,7 @@ const App = () => {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [handleFocusEarth, handlePausePlay, handleResetView, showShortcuts])
+  }, [handleFocusEarth, handlePausePlay, handleResetView, mobileDrawer, showShortcuts])
 
   useEffect(() => {
     if (!showShortcuts) return
@@ -814,7 +858,11 @@ const App = () => {
   }
 
   return (
-    <div className="app">
+    <div
+      className={`app ${isCompact ? 'compact' : ''} ${
+        mobileDrawer === 'filters' ? 'drawer-filters' : mobileDrawer === 'inspect' ? 'drawer-inspect' : ''
+      }`}
+    >
       <div className={`toast ${toast ? 'show' : ''}`}>{toast ?? ''}</div>
       {showShortcuts && (
         <div
@@ -950,6 +998,19 @@ const App = () => {
 
       <main className="layout">
         <aside className="panel left">
+          {isCompact && (
+            <div className="mobile-panel-header">
+              <div className="mobile-panel-title">Filters & Trust</div>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setMobileDrawer('none')}
+                ref={mobileDrawer === 'filters' ? mobileCloseRef : undefined}
+              >
+                Close
+              </button>
+            </div>
+          )}
           <section>
             <div className="section-title">Filters</div>
             <div className="filter-group">
@@ -1237,6 +1298,19 @@ const App = () => {
         </section>
 
         <aside className="panel right">
+          {isCompact && (
+            <div className="mobile-panel-header">
+              <div className="mobile-panel-title">Inspect & Share</div>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setMobileDrawer('none')}
+                ref={mobileDrawer === 'inspect' ? mobileCloseRef : undefined}
+              >
+                Close
+              </button>
+            </div>
+          )}
           <section>
             <div className="section-title">Selection</div>
             {selected ? (
@@ -1430,6 +1504,41 @@ const App = () => {
           </section>
         </aside>
       </main>
+
+      {isCompact && (
+        <>
+          <div className="mobile-dock" role="navigation" aria-label="Panels">
+            <button
+              type="button"
+              className={`dock-button ${mobileDrawer === 'filters' ? 'active' : ''}`}
+              onClick={() => setMobileDrawer((prev) => (prev === 'filters' ? 'none' : 'filters'))}
+            >
+              Filters
+              {getActiveFiltersCount(filters) > 0 && (
+                <span className="dock-badge">{getActiveFiltersCount(filters)}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              className={`dock-button ${mobileDrawer === 'inspect' ? 'active' : ''}`}
+              onClick={() => setMobileDrawer((prev) => (prev === 'inspect' ? 'none' : 'inspect'))}
+            >
+              Inspect
+              {selected && <span className="dock-badge">1</span>}
+            </button>
+          </div>
+          {mobileDrawer !== 'none' && (
+            <div
+              className="mobile-drawer-overlay"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  setMobileDrawer('none')
+                }
+              }}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 }

@@ -14,6 +14,7 @@
 
 ## Recent Decisions
 - Template: YYYY-MM-DD | Decision | Why | Evidence (tests/logs) | Commit | Confidence (high/medium/low) | Trust (trusted/untrusted)
+- 2026-02-09 | Add compact mobile drawer for Filters/Trust and Inspect/Share panels | Keeps globe-first UX on small screens without removing functionality | `npm run test` (pass); `npm run build` (pass) | f54423f | high | trusted
 - 2026-02-09 | Add safe CelesTrak catalog-group selector (active/stations/starlink/oneweb/gps/iridium) with per-group caching; persist in permalinks | Improves usefulness for common cohorts (Starlink/GPS/etc.) while keeping trust + reproducibility | `npm run test` (pass); `npm run build` (pass) | 02524d9 | high | trusted
 - 2026-02-09 | Add Vitest unit tests for URL-state + run tests in CI; scope test discovery to AstraView `src/` | Prevent permalink regressions and avoid nested-project test noise in this workspace | `npm run test` (pass) | a4a48b3 | high | trusted
 - 2026-02-09 | Expand “Session Signals” to include time-to-first-action + share/export counters (local-only) | Align the UI with success metrics and make sessions easier to reason about during iteration | `npm run build` (pass); manual `npm run preview` + HTTP 200 | 0a5f3d5 | medium | trusted
@@ -28,8 +29,8 @@
 - External dependency availability (CelesTrak) remains a product risk; stale-cache mitigation exists but catalog switching could increase surface area.
 
 ## Next Prioritized Tasks
-- Add mobile filter drawer mode (P2) to keep globe-first UX on narrow screens.
-- Tighten mobile layout (drawer/overlay) for filters and inspection panels.
+- Improve search UX with keyboard navigation + escape/outside-close.
+- Consider Web Worker offload for propagation + point updates for larger catalogs.
 
 ## Verification Evidence
 - Template: YYYY-MM-DD | Command | Key output | Status (pass/fail)

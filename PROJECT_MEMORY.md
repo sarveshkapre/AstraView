@@ -39,7 +39,8 @@
 - 2026-02-09 | `npm run build` | `vite build` success | pass
 - 2026-02-09 | `npm run preview -- --host 127.0.0.1 --port 4173` + `curl -I http://127.0.0.1:4173` | HTTP 200 OK | pass
 - 2026-02-09 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle' -o /dev/null` | HTTP/2 200 | pass
-- 2026-02-09 | `gh run list -b main -L 1` | CI `success` | pass
+- 2026-02-09 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=STARLINK&FORMAT=tle' -o /dev/null` | HTTP/2 200 | pass
+- 2026-02-09 | `gh run list -b main -L 1` | `gh` not authenticated/available in this environment | n/a
 
 ## Historical Summary
 - Keep compact summaries of older entries here when file compaction runs.

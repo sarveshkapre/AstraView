@@ -398,6 +398,27 @@ body {
   margin-top: 0.6rem;
 }
 
+.trust-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.trust-row span {
+  color: var(--muted);
+}
+
+.trust-row select {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
 .trust-actions button {
   border: 1px solid rgba(148, 163, 184, 0.4);
   background: transparent;

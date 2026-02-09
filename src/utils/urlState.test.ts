@@ -23,6 +23,7 @@ describe('urlState', () => {
     expect(state.filters!.altitudeBand).toBe('All')
     expect(state.filters!.dataset).toBe('all')
     expect(state.filters!.performance).toBe('balanced')
+    expect(state.filters!.catalogGroup).toBe('active')
     expect(state.snapshot).toEqual({ mode: 'globe', preset: 'custom', scale: 1, watermark: true })
   })
 
@@ -41,6 +42,7 @@ describe('urlState', () => {
       altitudeBand: '<500km',
       dataset: 'all',
       performance: 'high',
+      catalogGroup: 'starlink',
     }
 
     serializeUrlState({
@@ -61,6 +63,7 @@ describe('urlState', () => {
     expect(parsed.filters!.altitudeBand).toBe('<500km')
     expect(parsed.filters!.dataset).toBe('all')
     expect(parsed.filters!.performance).toBe('high')
+    expect(parsed.filters!.catalogGroup).toBe('starlink')
     expect(parsed.time).toEqual({ mode: 'paused', pausedAtSec: 321, speed: 5 })
     expect(parsed.snapshot).toEqual({ mode: 'full', preset: 'social', scale: 2, watermark: false })
     expect(parsed.view).toBeTruthy()

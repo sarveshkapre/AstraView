@@ -8,14 +8,17 @@
 
 ## Candidate Features To Do
 - [ ] [P2] Add a compact mobile filter drawer mode to reduce panel crowding on small screens. Score: impact 4, effort 3, strategic-fit 4, differentiation 2, risk 2, confidence 3.
-- [ ] [P2] Add a safe CelesTrak “catalog group” selector (URL + UI) with caching and trust copy (active/starlink/gps/etc.). Score: impact 4, effort 3, strategic-fit 4, differentiation 3, risk 3, confidence 3.
 - [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
 - [ ] [P3] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 - [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
+- [ ] [P2] Improve search UX with keyboard navigation (arrow keys + enter), and close results on escape/outside click. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P3] Add WebGL capability detection + friendly fallback UI when 3D init fails. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 2.
+- [ ] [P3] Pause animation updates when the tab is hidden; respect `prefers-reduced-motion` for motion-heavy defaults. Score: impact 2, effort 2, strategic-fit 3, differentiation 1, risk 1, confidence 3.
 
 ## Implemented
+- [x] [2026-02-09] Added safe CelesTrak catalog-group selector (URL + UI) with per-group caching and trust copy. Evidence: `src/data/tleSource.ts`, `src/utils/urlState.ts`, `src/utils/urlState.test.ts`, `src/App.tsx`, `npm run test` (pass), `npm run build` (pass).
 - [x] [2026-02-09] Added URL-state unit tests and CI test step; scoped Vitest to AstraView `src/` tests and enforced payload-only type chips when `dataset=payloads`. Evidence: `src/utils/urlState.ts`, `src/utils/urlState.test.ts`, `vitest.config.ts`, `.github/workflows/ci.yml`, `npm run test` (pass).
 - [x] [2026-02-09] Session Signals now include time-to-first-action plus share/export snapshot counters (local-only). Evidence: `src/App.tsx`.
 - [x] [2026-02-09] Aligned `package.json` version with `CHANGELOG.md` for release tracking. Evidence: `package.json`, `CHANGELOG.md`.

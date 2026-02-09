@@ -19,6 +19,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Earth day/night textures and normal mapping for surface detail.
 - Cloud layer and atmospheric limb glow for depth.
 - Live TLE ingestion (CelesTrak active satellites) with timeout handling, caching, and stale-cache fallback.
+- Safe catalog-group selector for CelesTrak live TLE (active/stations/starlink/oneweb/gps/iridium), persisted in permalinks.
 - Manual refresh control for the live catalog.
 - Data coverage stats for live vs synthetic objects.
 - Live/cache/fallback health badge in the header.

@@ -6,6 +6,7 @@ import type {
   TimeState,
   SnapshotState,
   SnapshotPreset,
+  TleCatalogGroup,
 } from '../types'
 
 const ALL_REGIMES: OrbitRegime[] = ['LEO', 'MEO', 'GEO']
@@ -26,6 +27,18 @@ const SNAPSHOT_PRESET_KEYS: Record<SnapshotPreset, string> = {
 }
 const SNAPSHOT_PRESET_FROM_KEY = new Map(
   Object.entries(SNAPSHOT_PRESET_KEYS).map(([preset, key]) => [key, preset as SnapshotPreset]),
+)
+
+const CATALOG_GROUP_KEYS: Record<TleCatalogGroup, string> = {
+  active: 'a',
+  stations: 'st',
+  starlink: 'sl',
+  oneweb: 'ow',
+  'gps-ops': 'g',
+  iridium: 'ir',
+}
+const CATALOG_GROUP_FROM_KEY = new Map(
+  Object.entries(CATALOG_GROUP_KEYS).map(([group, key]) => [key, group as TleCatalogGroup]),
 )
 
 const parseList = (value: string | null) =>
@@ -67,6 +80,13 @@ export const parseUrlState = (): UrlState => {
       : performanceParam === 'l'
         ? 'low'
         : 'balanced'
+  const catalogGroupParam = params.get('cg')
+  const catalogGroup =
+    CATALOG_GROUP_FROM_KEY.get(catalogGroupParam ?? '') ??
+    // Back-compat: allow older permalinks (or manual edits) to specify the full group name.
+    (Object.keys(CATALOG_GROUP_KEYS).includes((catalogGroupParam ?? '') as TleCatalogGroup)
+      ? (catalogGroupParam as TleCatalogGroup)
+      : 'active')
   const search = params.get('q') ?? undefined
   const selectedId = params.get('s')
 
@@ -97,6 +117,7 @@ export const parseUrlState = (): UrlState => {
       : 'All',
     dataset,
     performance: ALL_PERFORMANCE_MODES.includes(performance) ? performance : 'balanced',
+    catalogGroup,
   }
 
   if (filters.dataset === 'payloads') {
@@ -146,6 +167,9 @@ export const serializeUrlState = (state: UrlState) => {
     }
     if (state.filters.performance && state.filters.performance !== 'balanced') {
       params.set('pf', state.filters.performance === 'high' ? 'h' : 'l')
+    }
+    if (state.filters.catalogGroup && state.filters.catalogGroup !== 'active') {
+      params.set('cg', CATALOG_GROUP_KEYS[state.filters.catalogGroup])
     }
   }
 

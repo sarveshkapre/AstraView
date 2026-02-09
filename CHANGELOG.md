@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-02-09
+
+### Added
+- CelesTrak catalog-group selector (active/stations/starlink/oneweb/gps/iridium) with per-group caching; persisted in permalinks.
+
 ## [1.2.1] - 2026-02-09
 
 ### Added

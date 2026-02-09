@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
-import { loadActiveTleObjects, refreshActiveTleObjects } from './data/tleSource'
+import { loadTleObjects, refreshTleObjects, TLE_CATALOG_GROUPS } from './data/tleSource'
 import type {
   OrbitObject,
   FiltersState,
@@ -10,6 +10,7 @@ import type {
   ViewState,
   TimeState,
   SnapshotPreset,
+  TleCatalogGroup,
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
@@ -43,6 +44,7 @@ const defaultFilters = (): FiltersState => ({
   altitudeBand: 'All',
   dataset: 'all',
   performance: 'balanced',
+  catalogGroup: 'active',
 })
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
@@ -69,6 +71,7 @@ const getActiveFiltersCount = (filters: FiltersState) => {
   if (filters.types.size !== ALL_TYPES.length) count += filters.types.size
   if (filters.dataset !== 'all') count += 1
   if (filters.performance !== 'balanced') count += 1
+  if (filters.catalogGroup !== 'active') count += 1
   return count
 }
 
@@ -79,6 +82,7 @@ const App = () => {
   const [tleSourceMode, setTleSourceMode] = useState<TleSourceMode>('fallback')
   const [tleMessage, setTleMessage] = useState<string | null>(null)
   const [invalidTleCount, setInvalidTleCount] = useState(0)
+  const [tleGroupLoaded, setTleGroupLoaded] = useState<TleCatalogGroup>('active')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
@@ -173,16 +177,16 @@ const App = () => {
     let cancelled = false
     const load = async () => {
       setTleStatus('loading')
-      setTleSourceMode('fallback')
       setTleMessage(null)
       try {
-        const result = await loadActiveTleObjects()
+        const result = await loadTleObjects(filters.catalogGroup, { allowNetwork: isOnline })
         if (cancelled) return
         const invalidCount = result.objects.filter((object) => !isValidTleObject(object)).length
         setInvalidTleCount(invalidCount)
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
         setTleSourceMode(result.source)
+        setTleGroupLoaded(result.group)
         setTleStatus('ready')
         if (result.source === 'stale-cache') {
           setTleMessage('Live fetch failed. Showing stale cached catalog.')
@@ -198,7 +202,7 @@ const App = () => {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [filters.catalogGroup, isOnline])
 
   useEffect(() => {
     let frame = 0
@@ -359,19 +363,22 @@ const App = () => {
   const lastUpdatedLabel = hasFreshness
     ? lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     : 'Unknown'
+  const loadedGroupLabel =
+    TLE_CATALOG_GROUPS.find((entry) => entry.key === tleGroupLoaded)?.label ?? 'Active'
+  const hasLivePayloads = tleObjects.length > 0
   const sourcePrefix =
     tleSourceMode === 'network'
-      ? 'CelesTrak active satellites (live)'
+      ? `CelesTrak ${loadedGroupLabel} (live)`
       : tleSourceMode === 'cache'
-        ? 'CelesTrak active satellites (cached)'
+        ? `CelesTrak ${loadedGroupLabel} (cached)`
         : tleSourceMode === 'stale-cache'
-          ? 'CelesTrak active satellites (stale cache)'
+          ? `CelesTrak ${loadedGroupLabel} (stale cache)`
           : 'Synthetic demo catalog'
   const dataSourceLabel =
-    tleStatus === 'ready'
+    hasLivePayloads
       ? filters.dataset === 'payloads'
-        ? sourcePrefix
-        : `${sourcePrefix} + synthetic non-payloads`
+        ? `${sourcePrefix}${tleStatus === 'loading' ? ' (updating...)' : ''}`
+        : `${sourcePrefix} + synthetic non-payloads${tleStatus === 'loading' ? ' (updating...)' : ''}`
       : 'Synthetic demo catalog'
   const dataStatusLabel =
     tleStatus === 'loading'
@@ -778,15 +785,15 @@ const App = () => {
       return
     }
     setTleStatus('loading')
-    setTleSourceMode('fallback')
     setTleMessage(null)
     try {
-      const result = await refreshActiveTleObjects()
+      const result = await refreshTleObjects(filters.catalogGroup)
       const invalidCount = result.objects.filter((object) => !isValidTleObject(object)).length
       setInvalidTleCount(invalidCount)
       setTleObjects(result.objects)
       setLastUpdated(result.fetchedAt)
       setTleSourceMode(result.source)
+      setTleGroupLoaded(result.group)
       setTleStatus('ready')
       if (result.source === 'stale-cache') {
         setTleMessage('Refresh failed. Showing stale cached catalog.')
@@ -1067,6 +1074,30 @@ const App = () => {
             <div className="trust-item">
               <strong>Data Source</strong>
               <p>{dataSourceLabel}</p>
+              <div className="trust-actions">
+                <label className="trust-row" htmlFor="catalog-group">
+                  <span>Catalog</span>
+                  <select
+                    id="catalog-group"
+                    value={filters.catalogGroup}
+                    onChange={(event) => {
+                      const next = event.target.value as TleCatalogGroup
+                      recordMeaningfulAction()
+                      setFilters((prev) => ({ ...prev, catalogGroup: next }))
+                      showToast(
+                        `Catalog: ${TLE_CATALOG_GROUPS.find((entry) => entry.key === next)?.label ?? 'Active'}`,
+                      )
+                    }}
+                    disabled={tleStatus === 'loading'}
+                  >
+                    {TLE_CATALOG_GROUPS.map((entry) => (
+                      <option key={entry.key} value={entry.key}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
               <div className="trust-actions">
                 <button
                   type="button"

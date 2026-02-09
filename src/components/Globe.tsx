@@ -75,6 +75,7 @@ type GlobeProps = {
   externalCommand?: 'reset' | 'earth' | null
   onCommandHandled?: () => void
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void
+  onInitError?: (message: string) => void
 }
 
 const Globe = ({
@@ -91,6 +92,7 @@ const Globe = ({
   externalCommand,
   onCommandHandled,
   onCanvasReady,
+  onInitError,
 }: GlobeProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const sceneRef = useRef<THREE.Scene | null>(null)
@@ -136,58 +138,71 @@ const Globe = ({
     const container = containerRef.current
     if (!container) return
 
-    const scene = new THREE.Scene()
-    scene.fog = new THREE.Fog('#05070f', 6, 16)
+    let renderer: THREE.WebGLRenderer | null = null
+    try {
+      const probe = document.createElement('canvas')
+      const gl = probe.getContext('webgl2') || probe.getContext('webgl')
+      if (!gl) {
+        throw new Error('WebGL is not available in this browser.')
+      }
 
-    const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 100)
-    camera.position.set(0, 1.6, 3.4)
+      const scene = new THREE.Scene()
+      scene.fog = new THREE.Fog('#05070f', 6, 16)
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
-    renderer.setPixelRatio(window.devicePixelRatio)
-    renderer.setSize(container.clientWidth, container.clientHeight)
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    container.appendChild(renderer.domElement)
-    onCanvasReady?.(renderer.domElement)
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        100,
+      )
+      camera.position.set(0, 1.6, 3.4)
 
-    const controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableDamping = true
-    controls.dampingFactor = 0.08
-    controls.minDistance = 1.6
-    controls.maxDistance = 6
-    controls.enablePan = false
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+      renderer.setPixelRatio(window.devicePixelRatio)
+      renderer.setSize(container.clientWidth, container.clientHeight)
+      renderer.outputColorSpace = THREE.SRGBColorSpace
+      renderer.toneMapping = THREE.ACESFilmicToneMapping
+      container.appendChild(renderer.domElement)
+      onCanvasReady?.(renderer.domElement)
 
-    const ambient = new THREE.AmbientLight('#8bb8ff', 0.35)
-    const key = new THREE.DirectionalLight('#fef9c3', 1.15)
-    key.position.set(5, 2.4, 1.8)
-    const rim = new THREE.DirectionalLight('#4fd1c5', 0.6)
-    rim.position.set(-4, -2, -1)
+      const controls = new OrbitControls(camera, renderer.domElement)
+      controls.enableDamping = true
+      controls.dampingFactor = 0.08
+      controls.minDistance = 1.6
+      controls.maxDistance = 6
+      controls.enablePan = false
 
-    const textureLoader = new THREE.TextureLoader()
-    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy()
-    const dayMap = textureLoader.load('/textures/earth_day_2048.jpg')
-    dayMap.colorSpace = THREE.SRGBColorSpace
-    dayMap.anisotropy = maxAnisotropy
-    const nightMap = textureLoader.load('/textures/earth_night_2048.png')
-    nightMap.colorSpace = THREE.SRGBColorSpace
-    nightMap.anisotropy = maxAnisotropy
-    const normalMap = textureLoader.load('/textures/earth_normal_2048.jpg')
-    normalMap.anisotropy = maxAnisotropy
-    const cloudsMap = textureLoader.load('/textures/earth_clouds_1024.png')
-    cloudsMap.colorSpace = THREE.SRGBColorSpace
-    cloudsMap.anisotropy = maxAnisotropy
+      const ambient = new THREE.AmbientLight('#8bb8ff', 0.35)
+      const key = new THREE.DirectionalLight('#fef9c3', 1.15)
+      key.position.set(5, 2.4, 1.8)
+      const rim = new THREE.DirectionalLight('#4fd1c5', 0.6)
+      rim.position.set(-4, -2, -1)
 
-    const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
-    const earthMaterial = new THREE.MeshStandardMaterial({
-      color: '#102747',
-      map: dayMap,
-      normalMap,
-      normalScale: new THREE.Vector2(0.35, 0.35),
-      emissive: '#0b1b2c',
-      metalness: 0.05,
-      roughness: 0.85,
-    })
-    const earth = new THREE.Mesh(earthGeometry, earthMaterial)
+      const textureLoader = new THREE.TextureLoader()
+      const maxAnisotropy = renderer.capabilities.getMaxAnisotropy()
+      const dayMap = textureLoader.load('/textures/earth_day_2048.jpg')
+      dayMap.colorSpace = THREE.SRGBColorSpace
+      dayMap.anisotropy = maxAnisotropy
+      const nightMap = textureLoader.load('/textures/earth_night_2048.png')
+      nightMap.colorSpace = THREE.SRGBColorSpace
+      nightMap.anisotropy = maxAnisotropy
+      const normalMap = textureLoader.load('/textures/earth_normal_2048.jpg')
+      normalMap.anisotropy = maxAnisotropy
+      const cloudsMap = textureLoader.load('/textures/earth_clouds_1024.png')
+      cloudsMap.colorSpace = THREE.SRGBColorSpace
+      cloudsMap.anisotropy = maxAnisotropy
+
+      const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
+      const earthMaterial = new THREE.MeshStandardMaterial({
+        color: '#102747',
+        map: dayMap,
+        normalMap,
+        normalScale: new THREE.Vector2(0.35, 0.35),
+        emissive: '#0b1b2c',
+        metalness: 0.05,
+        roughness: 0.85,
+      })
+      const earth = new THREE.Mesh(earthGeometry, earthMaterial)
 
     const atmosphereGeometry = new THREE.SphereGeometry(1.05, 64, 64)
     const atmosphereMaterial = new THREE.ShaderMaterial({
@@ -322,19 +337,19 @@ const Globe = ({
     )
     selectedMarker.visible = false
 
-    scene.add(stars, earthGroup, ambient, key, rim, hoverMarker, selectedMarker)
+      scene.add(stars, earthGroup, ambient, key, rim, hoverMarker, selectedMarker)
 
-    sceneRef.current = scene
-    cameraRef.current = camera
-    rendererRef.current = renderer
-    controlsRef.current = controls
-    earthGroupRef.current = earthGroup
-    nightMaterialRef.current = nightMaterial
-    terminatorMaterialRef.current = terminatorMaterial
-    cloudsRef.current = clouds
-    atmosphereRef.current = atmosphere
-    hoverMarkerRef.current = hoverMarker
-    selectedMarkerRef.current = selectedMarker
+      sceneRef.current = scene
+      cameraRef.current = camera
+      rendererRef.current = renderer
+      controlsRef.current = controls
+      earthGroupRef.current = earthGroup
+      nightMaterialRef.current = nightMaterial
+      terminatorMaterialRef.current = terminatorMaterial
+      cloudsRef.current = clouds
+      atmosphereRef.current = atmosphere
+      hoverMarkerRef.current = hoverMarker
+      selectedMarkerRef.current = selectedMarker
 
     if (initialView) {
       camera.position.set(...initialView.camera)
@@ -407,9 +422,9 @@ const Globe = ({
       onViewChange?.({ camera: cameraPos, target, distance })
     }
 
-    renderer.domElement.addEventListener('mousemove', handlePointerMove)
-    renderer.domElement.addEventListener('click', handleClick)
-    controls.addEventListener('change', handleControls)
+      renderer.domElement.addEventListener('mousemove', handlePointerMove)
+      renderer.domElement.addEventListener('click', handleClick)
+      controls.addEventListener('change', handleControls)
 
     let frameId = 0
     const animate = () => {
@@ -504,21 +519,36 @@ const Globe = ({
       rendererRef.current.render(sceneRef.current, cameraRef.current)
     }
 
-    animate()
+      animate()
 
-    window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize)
 
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      renderer.domElement.removeEventListener('mousemove', handlePointerMove)
-      renderer.domElement.removeEventListener('click', handleClick)
-      controls.removeEventListener('change', handleControls)
-      cancelAnimationFrame(frameId)
-      renderer.dispose()
-      container.removeChild(renderer.domElement)
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        renderer?.domElement.removeEventListener('mousemove', handlePointerMove)
+        renderer?.domElement.removeEventListener('click', handleClick)
+        controls.removeEventListener('change', handleControls)
+        cancelAnimationFrame(frameId)
+        renderer?.dispose()
+        if (renderer?.domElement.parentElement === container) {
+          container.removeChild(renderer.domElement)
+        }
+        onCanvasReady?.(null)
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'WebGL initialization failed.'
+      onInitError?.(message)
       onCanvasReady?.(null)
+      if (renderer) {
+        if (renderer.domElement.parentElement === container) {
+          container.removeChild(renderer.domElement)
+        }
+        renderer.dispose()
+      }
+      return
     }
-  }, [initialView, onHover, onSelect, onViewChange, onCanvasReady, pointer, raycaster])
+  }, [initialView, onHover, onSelect, onViewChange, onCanvasReady, onInitError, pointer, raycaster])
 
   useEffect(() => {
     objectsRef.current = objects

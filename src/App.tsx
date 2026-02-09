@@ -121,6 +121,8 @@ const App = () => {
   const lastFocusRef = useRef<HTMLElement | null>(null)
   const mobileLastFocusRef = useRef<HTMLElement | null>(null)
   const [globeCanvas, setGlobeCanvas] = useState<HTMLCanvasElement | null>(null)
+  const [globeInitError, setGlobeInitError] = useState<string | null>(null)
+  const [globeKey, setGlobeKey] = useState(0)
   const inspectedIdsRef = useRef(new Set<string>())
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
@@ -135,6 +137,11 @@ const App = () => {
 
   const recordMeaningfulAction = useCallback(() => {
     setFirstActionAtMs((prev) => prev ?? Date.now())
+  }, [])
+
+  const handleCanvasReady = useCallback((canvas: HTMLCanvasElement | null) => {
+    setGlobeCanvas(canvas)
+    if (canvas) setGlobeInitError(null)
   }, [])
 
   useEffect(() => {
@@ -1336,6 +1343,7 @@ const App = () => {
             }
           >
             <Globe
+              key={globeKey}
               objects={displayObjects}
               timeSeconds={timeSeconds}
               animateTime={timeState.mode === 'live'}
@@ -1348,16 +1356,45 @@ const App = () => {
               pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
               externalCommand={globeCommand}
               onCommandHandled={() => setGlobeCommand(null)}
-              onCanvasReady={setGlobeCanvas}
+              onCanvasReady={handleCanvasReady}
+              onInitError={(message) => setGlobeInitError(message)}
             />
           </Suspense>
-          {isLoading && (
+          {globeInitError && (
+            <div className="globe-fallback" role="alert">
+              <div className="globe-fallback-title">3D globe unavailable</div>
+              <div className="globe-fallback-body">
+                WebGL is required to render AstraView. {globeInitError}
+              </div>
+              <div className="globe-fallback-body">
+                Try enabling hardware acceleration, updating your browser, or switching browsers.
+              </div>
+              <div className="globe-fallback-actions">
+                <a href="https://get.webgl.org/" target="_blank" rel="noreferrer">
+                  Test WebGL
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGlobeInitError(null)
+                    setGlobeKey((prev) => prev + 1)
+                  }}
+                >
+                  Retry
+                </button>
+                <button type="button" className="ghost" onClick={() => window.location.reload()}>
+                  Reload
+                </button>
+              </div>
+            </div>
+          )}
+          {isLoading && !globeInitError && (
             <div className="loading">
               <div className="loading-title">Initializing live orbits</div>
               <div className="loading-subtitle">Rendering globe and motion paths...</div>
             </div>
           )}
-          {hovered && hoverPosition && (
+          {!globeInitError && hovered && hoverPosition && (
             <div
               className="tooltip"
               style={{ left: hoverPosition.x + 12, top: hoverPosition.y + 12 }}
@@ -1368,6 +1405,7 @@ const App = () => {
               </div>
             </div>
           )}
+          {!globeInitError && (
           <div className="globe-overlay">
             <div className="time-controls">
               <button onClick={handleTimeToggle} type="button">
@@ -1420,6 +1458,7 @@ const App = () => {
                 : 'Full object mode.'}
             </div>
           </div>
+          )}
         </section>
 
         <aside className="panel right">

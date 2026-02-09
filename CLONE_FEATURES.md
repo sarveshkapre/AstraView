@@ -7,14 +7,15 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P2] Search dropdown polish: keyboard navigation (up/down/enter), close on escape/outside click, show NORAD ID, and basic `aria-*` combobox/listbox semantics. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P2] Motion hygiene: pause heavy animation work when tab is hidden; default to paused time when `prefers-reduced-motion: reduce`; avoid running time RAF while paused. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 1, confidence 4.
+- [ ] [P2] WebGL capability detection + friendly fallback UI when 3D init fails (including a clear “try another browser / enable WebGL” path). Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P3] Search upgrades: highlight matched substrings and support comma-separated numeric search (multiple NORAD IDs). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
 - [ ] [P3] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 - [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
-- [ ] [P2] Improve search UX with keyboard navigation (arrow keys + enter), and close results on escape/outside click. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 3.
-- [ ] [P3] Add WebGL capability detection + friendly fallback UI when 3D init fails. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 2.
-- [ ] [P3] Pause animation updates when the tab is hidden; respect `prefers-reduced-motion` for motion-heavy defaults. Score: impact 2, effort 2, strategic-fit 3, differentiation 1, risk 1, confidence 3.
+- [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
 
 ## Implemented
 - [x] [2026-02-09] Added compact mobile drawer mode for Filters/Trust and Inspect/Share panels. Evidence: `src/App.tsx`, `src/App.css`, `npm run build` (pass).
@@ -37,7 +38,7 @@
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
-- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, category/catalog switching, and time/inspection tools; many also support loading external TLE catalogs via URL params. Sources: [KeepTrack external catalogs](https://docs.keeptrack.space/advanced-tut/external-catalog/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [stuffin.space](https://stuffin.space/about/), [NASA Eyes](https://eyes.nasa.gov/apps/), [N2YO categories](https://www.n2yo.com/).
+- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, category/catalog switching, time/inspection tools, and explicit “WebGL required” fallback messaging; several also support loading external TLE catalogs via URL params. Sources: [KeepTrack external catalogs](https://docs.keeptrack.space/advanced-tut/external-catalog/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [stuffin.space about](https://stuffin.space/about/), [get.webgl.org](https://get.webgl.org/), [NASA Eyes apps](https://eyes.nasa.gov/apps/), [N2YO](https://www.n2yo.com/).
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

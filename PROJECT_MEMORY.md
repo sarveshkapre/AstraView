@@ -44,6 +44,7 @@
 - 2026-02-09 | `npm run build` | `vite build` success | pass
 - 2026-02-09 | `npm run preview -- --host 127.0.0.1 --port 4173` + `curl -I http://127.0.0.1:4173` | HTTP 200 OK | pass
 - 2026-02-09 | `gh issue list --state open --json number,title,author` | `[]` | pass
+- 2026-02-09 | `curl -sS 'https://api.github.com/repos/sarveshkapre/AstraView/actions/runs?branch=main&per_page=1'` | latest run `conclusion=success` | pass
 - 2026-02-09 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle' -o /dev/null` | HTTP/2 200 | pass
 - 2026-02-09 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=STARLINK&FORMAT=tle' -o /dev/null` | HTTP/2 200 | pass
 - 2026-02-09 | `curl -sS 'https://api.github.com/repos/sarveshkapre/AstraView/actions/runs?branch=main&per_page=1'` | latest run `conclusion=success` | pass

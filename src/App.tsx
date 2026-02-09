@@ -84,6 +84,8 @@ const App = () => {
   const [invalidTleCount, setInvalidTleCount] = useState(0)
   const [tleGroupLoaded, setTleGroupLoaded] = useState<TleCatalogGroup>('active')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchActiveIndex, setSearchActiveIndex] = useState(-1)
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
   const [hovered, setHovered] = useState<OrbitObject | null>(null)
@@ -113,6 +115,7 @@ const App = () => {
   const [snapshotCount, setSnapshotCount] = useState(0)
   const sessionStartMsRef = useRef(Date.now())
   const [firstActionAtMs, setFirstActionAtMs] = useState<number | null>(null)
+  const searchRootRef = useRef<HTMLDivElement | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
@@ -139,7 +142,13 @@ const App = () => {
     if (urlState.filters) setFilters(urlState.filters)
     if (urlState.search) setSearchTerm(urlState.search)
     if (urlState.selectedId) setPendingSelectedId(urlState.selectedId)
-    if (urlState.time) setTimeState(urlState.time)
+    if (urlState.time) {
+      setTimeState(urlState.time)
+    } else if (typeof window !== 'undefined' && 'matchMedia' in window) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setTimeState({ mode: 'paused', pausedAtSec: 0, speed: 1 })
+      }
+    }
     if (urlState.view) setViewState(urlState.view)
     if (urlState.snapshot) {
       setSnapshotMode(urlState.snapshot.mode)
@@ -201,6 +210,12 @@ const App = () => {
   useEffect(() => {
     timeSecondsRef.current = timeSeconds
   }, [timeSeconds])
+
+  useEffect(() => {
+    if (searchTerm.trim()) return
+    setIsSearchOpen(false)
+    setSearchActiveIndex(-1)
+  }, [searchTerm])
 
   useEffect(
     () => () => {
@@ -395,6 +410,30 @@ const App = () => {
     )
     return [...exact, ...remainder].slice(0, 6)
   }, [filteredObjects, searchTerm])
+
+  useEffect(() => {
+    if (searchActiveIndex < 0) return
+    if (searchActiveIndex < searchResults.length) return
+    setSearchActiveIndex(searchResults.length > 0 ? searchResults.length - 1 : -1)
+  }, [searchActiveIndex, searchResults.length])
+
+  useEffect(() => {
+    if (!isSearchOpen) return
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null
+      if (!target) return
+      if (!searchRootRef.current) return
+      if (searchRootRef.current.contains(target)) return
+      setIsSearchOpen(false)
+      setSearchActiveIndex(-1)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('touchstart', handlePointerDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('touchstart', handlePointerDown)
+    }
+  }, [isSearchOpen])
 
   const hasFreshness = tleStatus === 'ready'
   const dataAgeSec = hasFreshness ? Math.max(0, Math.floor((nowTick - lastUpdated.getTime()) / 1000)) : 0
@@ -752,6 +791,8 @@ const App = () => {
     recordInspection(object)
     setSelected(object)
     setFocusObject(object)
+    setIsSearchOpen(false)
+    setSearchActiveIndex(-1)
   }
 
   const handleResetView = useCallback(() => {
@@ -919,7 +960,21 @@ const App = () => {
           <div className="subtitle">Real-Time Orbit Explorer</div>
         </div>
         <div className="search">
-          <div className="search-field">
+          <div
+            className="search-field"
+            ref={searchRootRef}
+            onBlurCapture={(event) => {
+              const next = event.relatedTarget as Node | null
+              if (!next) {
+                setIsSearchOpen(false)
+                setSearchActiveIndex(-1)
+                return
+              }
+              if (searchRootRef.current?.contains(next)) return
+              setIsSearchOpen(false)
+              setSearchActiveIndex(-1)
+            }}
+          >
             <input
               ref={searchInputRef}
               type="text"
@@ -929,32 +984,91 @@ const App = () => {
                 const next = event.target.value
                 if (next.trim()) recordMeaningfulAction()
                 setSearchTerm(next)
+                setIsSearchOpen(Boolean(next.trim()))
               }}
+              onFocus={() => {
+                if (!searchTerm.trim()) return
+                setIsSearchOpen(true)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  if (isSearchOpen) {
+                    event.preventDefault()
+                    setIsSearchOpen(false)
+                    setSearchActiveIndex(-1)
+                  }
+                  return
+                }
+                if (event.key === 'ArrowDown') {
+                  if (!searchTerm.trim() || searchResults.length === 0) return
+                  event.preventDefault()
+                  setIsSearchOpen(true)
+                  setSearchActiveIndex((prev) => {
+                    if (prev < 0) return 0
+                    return Math.min(searchResults.length - 1, prev + 1)
+                  })
+                  return
+                }
+                if (event.key === 'ArrowUp') {
+                  if (!searchTerm.trim() || searchResults.length === 0) return
+                  event.preventDefault()
+                  setIsSearchOpen(true)
+                  setSearchActiveIndex((prev) => {
+                    if (prev < 0) return searchResults.length - 1
+                    return Math.max(0, prev - 1)
+                  })
+                  return
+                }
+                if (event.key === 'Enter') {
+                  if (!isSearchOpen) return
+                  if (searchActiveIndex < 0) return
+                  const selectedResult = searchResults[searchActiveIndex]
+                  if (!selectedResult) return
+                  event.preventDefault()
+                  handleSearchSelect(selectedResult)
+                }
+              }}
+              role="combobox"
+              aria-expanded={
+                isSearchOpen &&
+                (searchResults.length > 0 || (Boolean(searchTerm.trim()) && filteredObjects.length === 0))
+              }
+              aria-controls={isSearchOpen ? 'search-listbox' : undefined}
+              aria-autocomplete="list"
+              aria-activedescendant={
+                searchActiveIndex >= 0 && searchResults[searchActiveIndex]
+                  ? `search-option-${searchResults[searchActiveIndex].id}`
+                  : undefined
+              }
               aria-label="Search satellites"
             />
-            {searchResults.length > 0 && (
+            {isSearchOpen && searchResults.length > 0 && (
               <div className="search-results">
                 <div className="search-meta">
                   Top matches · {formatNumber(filteredObjects.length)} total
                 </div>
-                <div className="search-list">
-                  {searchResults.map((object) => (
-                    <button
+                <div className="search-list" id="search-listbox" role="listbox">
+                  {searchResults.map((object, index) => (
+                    <div
                       key={object.id}
-                      className="search-item"
-                      type="button"
+                      id={`search-option-${object.id}`}
+                      role="option"
+                      aria-selected={index === searchActiveIndex}
+                      className={`search-item ${index === searchActiveIndex ? 'active' : ''}`}
+                      onMouseEnter={() => setSearchActiveIndex(index)}
+                      onMouseDown={(event) => event.preventDefault()}
                       onClick={() => handleSearchSelect(object)}
                     >
                       <span>{object.name}</span>
                       <span className="search-item-meta">
-                        {object.regime} · {object.type}
+                        NORAD {object.noradId} · {object.regime} · {object.type}
                       </span>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
-            {searchTerm.trim() && filteredObjects.length === 0 && (
+            {isSearchOpen && searchTerm.trim() && filteredObjects.length === 0 && (
               <div className="search-results">
                 <div className="search-meta">No matches. Try a different keyword.</div>
               </div>

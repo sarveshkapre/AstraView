@@ -198,7 +198,9 @@ body {
   font-size: 0.8rem;
 }
 
-.search-item:hover {
+.search-item:hover,
+.search-item.active,
+.search-item[aria-selected='true'] {
   border-color: rgba(56, 189, 248, 0.5);
   background: rgba(56, 189, 248, 0.15);
 }

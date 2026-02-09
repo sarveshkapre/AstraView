@@ -7,9 +7,16 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P2] Add lightweight automated tests for URL-state encode/decode behavior to prevent permalink regressions.
-- [ ] [P2] Add in-app telemetry event hooks for meaningful action, share, and inspect counters (local-first, privacy-safe).
-- [ ] [P3] Expose a compact mobile filter drawer mode to reduce panel crowding on small screens.
+- [ ] [Selected] [P1] Add lightweight automated tests for URL-state parse/serialize invariants (permalink regressions). Score: impact 5, effort 2, strategic-fit 5, differentiation 2, risk 1, confidence 5.
+- [ ] [Selected] [P1] Improve “Session Signals” to better match success metrics: time-to-first-meaningful-action + share/export counters (local-only; no network). Score: impact 4, effort 2, strategic-fit 5, differentiation 2, risk 1, confidence 4.
+- [ ] [Selected] [P2] Align `package.json` version + scripts with `CHANGELOG.md` and add a `test` script that CI runs. Score: impact 3, effort 1, strategic-fit 4, differentiation 1, risk 1, confidence 5.
+- [ ] [P2] Add a compact mobile filter drawer mode to reduce panel crowding on small screens. Score: impact 4, effort 3, strategic-fit 4, differentiation 2, risk 2, confidence 3.
+- [ ] [P2] Add a safe CelesTrak “catalog group” selector (URL + UI) with caching and trust copy (active/starlink/gps/etc.). Score: impact 4, effort 3, strategic-fit 4, differentiation 3, risk 3, confidence 3.
+- [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P3] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
+- [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
+- [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
+- [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
 
 ## Implemented
 - [x] [2026-02-08] Fixed URL-state defaults for filters so first-load chips and filtering behavior are deterministic. Evidence: `src/utils/urlState.ts`, `src/App.tsx`.

@@ -99,7 +99,8 @@ export const parseUrlState = (): UrlState => {
     performance: ALL_PERFORMANCE_MODES.includes(performance) ? performance : 'balanced',
   }
 
-  if (filters.dataset === 'payloads' && !filters.types.has('Payload')) {
+  if (filters.dataset === 'payloads') {
+    // Keep chip state consistent with behavior: payloads-only implies Payload type only.
     filters.types = new Set<OrbitType>(['Payload'])
   }
 

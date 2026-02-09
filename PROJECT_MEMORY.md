@@ -22,6 +22,7 @@
 - 2026-02-09 | Polish search dropdown keyboard UX + close semantics + `aria-*` combobox/listbox basics | Improves accessibility and speeds power-user flows without adding UI chrome | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 7c6d533 | high | trusted
 - 2026-02-09 | Motion hygiene: stop time RAF when paused, skip heavy globe updates when time isn't advancing, and pause animation work while tab is hidden | Reduces background CPU use and aligns with minimal-chrome “immediate feedback” UX | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | bb21a35 | high | trusted
 - 2026-02-09 | Add WebGL capability detection + friendly in-app fallback UI when 3D init fails | Prevents blank-screen failures and makes recovery paths obvious | `npm run build` (pass); `npm run preview` + HTTP 200 | 167fd8b | high | trusted
+- 2026-02-09 | Stabilize globe initialization by storing callbacks in refs and applying URL initial view once | Avoids accidental re-initialization loops and keeps Three.js setup mount-only | `npm run lint` (pass); `npm run build` (pass); GitHub Actions (success) | 38251e0 | high | trusted
 
 ## Mistakes And Fixes
 - Template: YYYY-MM-DD | Issue | Root cause | Fix | Prevention rule | Commit | Confidence

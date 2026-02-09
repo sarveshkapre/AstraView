@@ -105,6 +105,10 @@ const App = () => {
   const [snapshotPreset, setSnapshotPreset] = useState<SnapshotPreset>('custom')
   const [exportScale, setExportScale] = useState<1 | 2>(1)
   const [inspectedCount, setInspectedCount] = useState(0)
+  const [shareCount, setShareCount] = useState(0)
+  const [snapshotCount, setSnapshotCount] = useState(0)
+  const sessionStartMsRef = useRef(Date.now())
+  const [firstActionAtMs, setFirstActionAtMs] = useState<number | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const helpButtonRef = useRef<HTMLButtonElement | null>(null)
   const lastFocusRef = useRef<HTMLElement | null>(null)
@@ -112,6 +116,10 @@ const App = () => {
   const inspectedIdsRef = useRef(new Set<string>())
 
   const [pendingSelectedId, setPendingSelectedId] = useState<string | null>(null)
+
+  const recordMeaningfulAction = useCallback(() => {
+    setFirstActionAtMs((prev) => prev ?? Date.now())
+  }, [])
 
   useEffect(() => {
     const urlState = parseUrlState()
@@ -404,7 +412,10 @@ const App = () => {
   }, [])
 
   const handleSelect = (object: OrbitObject | null) => {
-    if (object) recordInspection(object)
+    if (object) {
+      recordMeaningfulAction()
+      recordInspection(object)
+    }
     setSelected(object)
     setFocusObject(object)
   }
@@ -431,10 +442,12 @@ const App = () => {
   }
 
   const handleAltitudeChange = (band: AltitudeBand) => {
+    recordMeaningfulAction()
     setFilters((prev) => ({ ...prev, altitudeBand: band }))
   }
 
   const handleConstellationToggle = (constellation: string) => {
+    recordMeaningfulAction()
     setFilters((prev) => {
       const next = new Set(prev.constellations)
       if (next.has(constellation)) {
@@ -447,6 +460,7 @@ const App = () => {
   }
 
   const handleDatasetChange = (dataset: FiltersState['dataset']) => {
+    recordMeaningfulAction()
     setFilters((prev) => ({
       ...prev,
       dataset,
@@ -455,6 +469,7 @@ const App = () => {
   }
 
   const handleResetFilters = () => {
+    recordMeaningfulAction()
     setFilters(defaultFilters())
     setSearchTerm('')
   }
@@ -468,6 +483,7 @@ const App = () => {
   }
 
   const shareLink = async () => {
+    recordMeaningfulAction()
     try {
       await navigator.clipboard.writeText(window.location.href)
       const presetLabel =
@@ -478,6 +494,7 @@ const App = () => {
             : snapshotPreset === 'social'
               ? 'Social'
               : 'Report'
+      setShareCount((prev) => prev + 1)
       showToast(`Share link copied · Snapshot: ${presetLabel}, ${exportScale}x.`)
     } catch {
       showToast('Copy failed. Use your browser menu to copy the URL.')
@@ -543,6 +560,7 @@ const App = () => {
 
   const handleExport = async () => {
     if (isExporting) return
+    recordMeaningfulAction()
     setIsExporting(true)
     if (!globeCanvas) {
       showToast('Globe not ready yet.')
@@ -574,6 +592,7 @@ const App = () => {
         link.href = finalUrl
         link.download = `astraview-${new Date().toISOString().slice(0, 10)}.png`
         link.click()
+        setSnapshotCount((prev) => prev + 1)
         showToast('Snapshot saved.')
       } else {
         const target = document.querySelector<HTMLElement>('.app')
@@ -595,6 +614,7 @@ const App = () => {
         link.href = dataUrl
         link.download = `astraview-full-${new Date().toISOString().slice(0, 10)}.png`
         link.click()
+        setSnapshotCount((prev) => prev + 1)
         showToast('Full snapshot saved.')
       }
     } catch {
@@ -606,6 +626,7 @@ const App = () => {
 
   const handleCopySnapshot = async () => {
     if (isExporting) return
+    recordMeaningfulAction()
     if (!globeCanvas) {
       showToast('Globe not ready yet.')
       return
@@ -641,6 +662,7 @@ const App = () => {
       )
       if (!blob) throw new Error('No blob')
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+      setSnapshotCount((prev) => prev + 1)
       showToast('Snapshot copied to clipboard.')
     } catch {
       showToast('Copy failed. Try export instead.')
@@ -650,6 +672,7 @@ const App = () => {
   }
 
   const handleTimeToggle = useCallback(() => {
+    recordMeaningfulAction()
     setTimeState((prev) => {
       if (prev.mode === 'live') {
         const nextPaused = Math.min(timeSecondsRef.current, 6000)
@@ -657,17 +680,20 @@ const App = () => {
       }
       return { mode: 'live', speed: prev.speed ?? 1 }
     })
-  }, [])
+  }, [recordMeaningfulAction])
 
   const handleNow = () => {
+    recordMeaningfulAction()
     setTimeState((prev) => ({ mode: 'live', speed: prev.speed ?? 1 }))
   }
 
   const handleScrub = (value: number) => {
+    recordMeaningfulAction()
     setTimeState((prev) => ({ mode: 'paused', pausedAtSec: value, speed: prev.speed ?? 1 }))
   }
 
   const handleSpeedChange = (value: number) => {
+    recordMeaningfulAction()
     setTimeState((prev) => ({ ...prev, speed: value }))
   }
 
@@ -677,13 +703,20 @@ const App = () => {
   }
 
   const handleSearchSelect = (object: OrbitObject) => {
+    recordMeaningfulAction()
     recordInspection(object)
     setSelected(object)
     setFocusObject(object)
   }
 
-  const handleResetView = useCallback(() => setGlobeCommand('reset'), [])
-  const handleFocusEarth = useCallback(() => setGlobeCommand('earth'), [])
+  const handleResetView = useCallback(() => {
+    recordMeaningfulAction()
+    setGlobeCommand('reset')
+  }, [recordMeaningfulAction])
+  const handleFocusEarth = useCallback(() => {
+    recordMeaningfulAction()
+    setGlobeCommand('earth')
+  }, [recordMeaningfulAction])
   const handlePausePlay = useCallback(() => {
     handleTimeToggle()
   }, [handleTimeToggle])
@@ -739,6 +772,7 @@ const App = () => {
   }, [showShortcuts])
 
   const handleRefreshData = async () => {
+    recordMeaningfulAction()
     if (!isOnline) {
       showToast('Offline. Connect to refresh live catalog.')
       return
@@ -836,7 +870,11 @@ const App = () => {
               type="text"
               placeholder="Search satellites, NORAD ID, constellation"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => {
+                const next = event.target.value
+                if (next.trim()) recordMeaningfulAction()
+                setSearchTerm(next)
+              }}
               aria-label="Search satellites"
             />
             {searchResults.length > 0 && (
@@ -929,12 +967,13 @@ const App = () => {
                   <button
                     key={regime}
                     className={`chip ${filters.regimes.has(regime) ? 'active' : ''}`}
-                    onClick={() =>
+                    onClick={() => {
+                      recordMeaningfulAction()
                       setFilters((prev) => ({
                         ...prev,
                         regimes: toggleFilter(prev.regimes, regime, ALL_REGIMES),
                       }))
-                    }
+                    }}
                     type="button"
                   >
                     {regime}
@@ -949,12 +988,13 @@ const App = () => {
                   <button
                     key={type}
                     className={`chip ${filters.types.has(type) ? 'active' : ''}`}
-                    onClick={() =>
+                    onClick={() => {
+                      recordMeaningfulAction()
                       setFilters((prev) => ({
                         ...prev,
                         types: toggleFilter(prev.types, type, ALL_TYPES),
                       }))
-                    }
+                    }}
                     disabled={filters.dataset === 'payloads' && type !== 'Payload'}
                     type="button"
                   >
@@ -1001,7 +1041,10 @@ const App = () => {
                   <button
                     key={mode}
                     className={`chip ${filters.performance === mode ? 'active' : ''}`}
-                    onClick={() => setFilters((prev) => ({ ...prev, performance: mode }))}
+                    onClick={() => {
+                      recordMeaningfulAction()
+                      setFilters((prev) => ({ ...prev, performance: mode }))
+                    }}
                     type="button"
                   >
                     {mode === 'high' ? 'High detail' : mode === 'low' ? 'Low detail' : 'Balanced'}
@@ -1342,8 +1385,15 @@ const App = () => {
           <section className="summary">
             <div className="section-title">Session Signals</div>
             <ul>
-              <li>Meaningful action time: {searchTerm || selected ? 'Active' : 'Awaiting'}</li>
+              <li>
+                Time to first action:{' '}
+                {firstActionAtMs
+                  ? `${Math.max(0, Math.floor((firstActionAtMs - sessionStartMsRef.current) / 1000))}s`
+                  : 'Pending'}
+              </li>
               <li>Objects inspected: {inspectedCount}</li>
+              <li>Share links copied: {shareCount}</li>
+              <li>Snapshots saved/copied: {snapshotCount}</li>
               <li>Filters active: {getActiveFiltersCount(filters)}</li>
             </ul>
           </section>

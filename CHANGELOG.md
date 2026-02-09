@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-02-09
+
+### Added
+- CI now runs unit tests; URL-state parse/serialize invariants are covered to prevent permalink regressions.
+- Session Signals now include time-to-first-action plus share/export counters (local-only).
+
+### Fixed
+- URL-state parsing now enforces payload-only type chips when `dataset=payloads` for consistent UI behavior.
+
 ## [1.2.0] - 2026-02-08
 
 ### Added

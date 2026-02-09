@@ -7,9 +7,6 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [Selected] [P1] Add lightweight automated tests for URL-state parse/serialize invariants (permalink regressions). Score: impact 5, effort 2, strategic-fit 5, differentiation 2, risk 1, confidence 5.
-- [ ] [Selected] [P1] Improve “Session Signals” to better match success metrics: time-to-first-meaningful-action + share/export counters (local-only; no network). Score: impact 4, effort 2, strategic-fit 5, differentiation 2, risk 1, confidence 4.
-- [ ] [Selected] [P2] Align `package.json` version + scripts with `CHANGELOG.md` and add a `test` script that CI runs. Score: impact 3, effort 1, strategic-fit 4, differentiation 1, risk 1, confidence 5.
 - [ ] [P2] Add a compact mobile filter drawer mode to reduce panel crowding on small screens. Score: impact 4, effort 3, strategic-fit 4, differentiation 2, risk 2, confidence 3.
 - [ ] [P2] Add a safe CelesTrak “catalog group” selector (URL + UI) with caching and trust copy (active/starlink/gps/etc.). Score: impact 4, effort 3, strategic-fit 4, differentiation 3, risk 3, confidence 3.
 - [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
@@ -19,6 +16,9 @@
 - [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
 
 ## Implemented
+- [x] [2026-02-09] Added URL-state unit tests and CI test step; scoped Vitest to AstraView `src/` tests and enforced payload-only type chips when `dataset=payloads`. Evidence: `src/utils/urlState.ts`, `src/utils/urlState.test.ts`, `vitest.config.ts`, `.github/workflows/ci.yml`, `npm run test` (pass).
+- [x] [2026-02-09] Session Signals now include time-to-first-action plus share/export snapshot counters (local-only). Evidence: `src/App.tsx`.
+- [x] [2026-02-09] Aligned `package.json` version with `CHANGELOG.md` for release tracking. Evidence: `package.json`, `CHANGELOG.md`.
 - [x] [2026-02-08] Fixed URL-state defaults for filters so first-load chips and filtering behavior are deterministic. Evidence: `src/utils/urlState.ts`, `src/App.tsx`.
 - [x] [2026-02-08] Expanded permalinks to include snapshot mode/watermark/preset/scale. Evidence: `src/utils/urlState.ts`, `src/App.tsx`, `README.md`.
 - [x] [2026-02-08] Hardened live TLE loading with timeout + stale-cache fallback. Evidence: `src/data/tleSource.ts`, `src/App.tsx`.
@@ -34,6 +34,7 @@
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
+- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, catalog/source switching, and time/inspection tools; ground tracks and catalog selection appear as typical parity gaps worth considering next. Sources: [KeepTrack](https://github.com/thkruz/keeptrack.space), [stuffin.space](https://stuffin.space/about/), [NASA Eyes](https://eyes.nasa.gov/apps/), [N2YO](https://www.n2yo.com/).
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

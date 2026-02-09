@@ -7,11 +7,11 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P2] Search dropdown polish: keyboard navigation (up/down/enter), close on escape/outside click, show NORAD ID, and basic `aria-*` combobox/listbox semantics. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
-- [ ] [P2] Motion hygiene: pause heavy animation work when tab is hidden; default to paused time when `prefers-reduced-motion: reduce`; avoid running time RAF while paused. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 1, confidence 4.
-- [ ] [P2] WebGL capability detection + friendly fallback UI when 3D init fails (including a clear “try another browser / enable WebGL” path). Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 3.
-- [ ] [P3] Search upgrades: highlight matched substrings and support comma-separated numeric search (multiple NORAD IDs). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
-- [ ] [P3] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
+- [ ] [P1][Cycle-4] Search dropdown polish: keyboard navigation (up/down/enter), close on escape/outside click, show NORAD ID, and basic `aria-*` combobox/listbox semantics. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P1][Cycle-4] Motion hygiene: pause heavy animation work when tab is hidden; default to paused time when `prefers-reduced-motion: reduce`; avoid running time RAF while paused. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 1, confidence 4.
+- [ ] [P1][Cycle-4] WebGL capability detection + friendly fallback UI when 3D init fails (including a clear “try another browser / enable WebGL” path). Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P2] Search upgrades: highlight matched substrings and support comma-separated numeric search (multiple NORAD IDs). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P2] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 - [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.

@@ -121,6 +121,32 @@ const Globe = ({
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const pointer = useMemo(() => new THREE.Vector2(), [])
+  const onHoverRef = useRef(onHover)
+  const onSelectRef = useRef(onSelect)
+  const onViewChangeRef = useRef(onViewChange)
+  const onCanvasReadyRef = useRef(onCanvasReady)
+  const onInitErrorRef = useRef(onInitError)
+  const appliedInitialViewRef = useRef(false)
+
+  useEffect(() => {
+    onHoverRef.current = onHover
+  }, [onHover])
+
+  useEffect(() => {
+    onSelectRef.current = onSelect
+  }, [onSelect])
+
+  useEffect(() => {
+    onViewChangeRef.current = onViewChange
+  }, [onViewChange])
+
+  useEffect(() => {
+    onCanvasReadyRef.current = onCanvasReady
+  }, [onCanvasReady])
+
+  useEffect(() => {
+    onInitErrorRef.current = onInitError
+  }, [onInitError])
 
   useEffect(() => {
     timeRef.current = timeSeconds
@@ -133,6 +159,16 @@ const Globe = ({
   useEffect(() => {
     selectedIdRef.current = selectedId
   }, [selectedId])
+
+  useEffect(() => {
+    if (!initialView) return
+    if (appliedInitialViewRef.current) return
+    if (!cameraRef.current || !controlsRef.current) return
+    cameraRef.current.position.set(...initialView.camera)
+    controlsRef.current.target.set(...initialView.target)
+    controlsRef.current.update()
+    appliedInitialViewRef.current = true
+  }, [initialView])
 
   useEffect(() => {
     const container = containerRef.current
@@ -163,7 +199,7 @@ const Globe = ({
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
       container.appendChild(renderer.domElement)
-      onCanvasReady?.(renderer.domElement)
+      onCanvasReadyRef.current?.(renderer.domElement)
 
       const controls = new OrbitControls(camera, renderer.domElement)
       controls.enableDamping = true
@@ -351,16 +387,10 @@ const Globe = ({
       hoverMarkerRef.current = hoverMarker
       selectedMarkerRef.current = selectedMarker
 
-    if (initialView) {
-      camera.position.set(...initialView.camera)
-      controls.target.set(...initialView.target)
-      controls.update()
-    }
-
-    const handleResize = () => {
-      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return
-      const width = containerRef.current.clientWidth
-      const height = containerRef.current.clientHeight
+      const handleResize = () => {
+        if (!containerRef.current || !cameraRef.current || !rendererRef.current) return
+        const width = containerRef.current.clientWidth
+        const height = containerRef.current.clientHeight
       cameraRef.current.aspect = width / height
       cameraRef.current.updateProjectionMatrix()
       rendererRef.current.setSize(width, height)
@@ -380,7 +410,7 @@ const Globe = ({
         const object = objectsRef.current[index]
         if (object && hoverRef.current?.id !== object.id) {
           hoverRef.current = object
-          onHover(object, { x: event.clientX, y: event.clientY })
+          onHoverRef.current(object, { x: event.clientX, y: event.clientY })
         }
         if (hoverMarkerRef.current && object) {
           const position = positionForObject(object, timeRef.current)
@@ -394,7 +424,7 @@ const Globe = ({
         rendererRef.current.domElement.style.cursor = 'pointer'
       } else {
         hoverRef.current = null
-        onHover(null, null)
+        onHoverRef.current(null, null)
         if (hoverMarkerRef.current) hoverMarkerRef.current.visible = false
         rendererRef.current.domElement.style.cursor = 'grab'
       }
@@ -402,7 +432,7 @@ const Globe = ({
 
     const handleClick = () => {
       if (hoverRef.current) {
-        onSelect(hoverRef.current)
+        onSelectRef.current(hoverRef.current)
       }
     }
 
@@ -419,7 +449,7 @@ const Globe = ({
         controlsRef.current.target.z,
       ]
       const distance = cameraRef.current.position.distanceTo(controlsRef.current.target)
-      onViewChange?.({ camera: cameraPos, target, distance })
+      onViewChangeRef.current?.({ camera: cameraPos, target, distance })
     }
 
       renderer.domElement.addEventListener('mousemove', handlePointerMove)
@@ -533,13 +563,13 @@ const Globe = ({
         if (renderer?.domElement.parentElement === container) {
           container.removeChild(renderer.domElement)
         }
-        onCanvasReady?.(null)
+        onCanvasReadyRef.current?.(null)
       }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'WebGL initialization failed.'
-      onInitError?.(message)
-      onCanvasReady?.(null)
+      onInitErrorRef.current?.(message)
+      onCanvasReadyRef.current?.(null)
       if (renderer) {
         if (renderer.domElement.parentElement === container) {
           container.removeChild(renderer.domElement)
@@ -548,7 +578,7 @@ const Globe = ({
       }
       return
     }
-  }, [initialView, onHover, onSelect, onViewChange, onCanvasReady, onInitError, pointer, raycaster])
+  }, [pointer, raycaster])
 
   useEffect(() => {
     objectsRef.current = objects

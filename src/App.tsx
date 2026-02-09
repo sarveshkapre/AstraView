@@ -512,14 +512,14 @@ const App = () => {
     setInspectedCount(inspectedIdsRef.current.size)
   }, [])
 
-  const handleSelect = (object: OrbitObject | null) => {
+  const handleSelect = useCallback((object: OrbitObject | null) => {
     if (object) {
       recordMeaningfulAction()
       recordInspection(object)
     }
     setSelected(object)
     setFocusObject(object)
-  }
+  }, [recordMeaningfulAction, recordInspection])
 
   const handleClearSelection = () => {
     setSelected(null)
@@ -798,10 +798,10 @@ const App = () => {
     setTimeState((prev) => ({ ...prev, speed: value }))
   }
 
-  const handleHover = (object: OrbitObject | null, screen: { x: number; y: number } | null) => {
+  const handleHover = useCallback((object: OrbitObject | null, screen: { x: number; y: number } | null) => {
     setHovered(object)
     setHoverPosition(screen)
-  }
+  }, [])
 
   const handleSearchSelect = (object: OrbitObject) => {
     recordMeaningfulAction()
@@ -823,6 +823,14 @@ const App = () => {
   const handlePausePlay = useCallback(() => {
     handleTimeToggle()
   }, [handleTimeToggle])
+
+  const handleViewChange = useCallback((view: ViewState) => {
+    setViewState(view)
+  }, [])
+
+  const handleGlobeInitError = useCallback((message: string) => {
+    setGlobeInitError(message)
+  }, [])
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
@@ -1350,14 +1358,14 @@ const App = () => {
               selectedId={selected?.id}
               onHover={handleHover}
               onSelect={handleSelect}
-              onViewChange={(view) => setViewState(view)}
+              onViewChange={handleViewChange}
               focusObject={focusObject}
               initialView={viewState}
               pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
               externalCommand={globeCommand}
               onCommandHandled={() => setGlobeCommand(null)}
               onCanvasReady={handleCanvasReady}
-              onInitError={(message) => setGlobeInitError(message)}
+              onInitError={handleGlobeInitError}
             />
           </Suspense>
           {globeInitError && (

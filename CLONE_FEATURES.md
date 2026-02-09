@@ -37,7 +37,7 @@
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
-- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, catalog/source switching, and time/inspection tools; ground tracks and catalog selection appear as typical parity gaps worth considering next. Sources: [KeepTrack](https://github.com/thkruz/keeptrack.space), [stuffin.space](https://stuffin.space/about/), [NASA Eyes](https://eyes.nasa.gov/apps/), [N2YO](https://www.n2yo.com/).
+- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, category/catalog switching, and time/inspection tools; many also support loading external TLE catalogs via URL params. Sources: [KeepTrack external catalogs](https://docs.keeptrack.space/advanced-tut/external-catalog/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [stuffin.space](https://stuffin.space/about/), [NASA Eyes](https://eyes.nasa.gov/apps/), [N2YO categories](https://www.n2yo.com/).
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

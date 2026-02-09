@@ -9,10 +9,12 @@
 ## Interaction Model
 - Orbit control: click-drag to rotate, scroll to zoom.
 - Search and filters update instantly.
+- Search dropdown supports keyboard navigation (up/down/enter) and closes on escape/outside click.
 - Hover = tooltip, click = selection + orbit path.
 - On small screens, Filters/Trust and Inspect/Share panels live in a compact drawer so the globe stays primary.
 - Loading overlay appears briefly on startup to confirm activity.
 - Time scrubber allows manual inspection of a fixed window.
+- Default to paused time when `prefers-reduced-motion: reduce` is enabled (user can still press Play).
 - Dataset toggle switches between payloads-only and all cataloged objects.
 - Trust panel surfaces data source, status, and freshness age.
 - Manual refresh button gives users control of live catalog updates.
@@ -44,6 +46,7 @@
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.
 - Motion can be paused via time controls.
+- Friendly “WebGL required” fallback messaging when 3D initialization fails.
 - Trust panel anchors definitions and limitations.
 
 ## Performance

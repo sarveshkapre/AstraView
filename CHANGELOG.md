@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-02-09
+
+### Added
+- Search dropdown keyboard navigation (up/down/enter), close on escape/outside click, NORAD IDs in results, and basic combobox/listbox `aria-*` semantics.
+- Friendly WebGL-required fallback overlay when 3D initialization fails (clear “try another browser / enable WebGL” path).
+
+### Changed
+- Motion hygiene: time updates stop while paused/hidden, and the globe skips heavy point-buffer updates when time is not advancing.
+
 ## [1.3.1] - 2026-02-09
 
 ### Added

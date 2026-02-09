@@ -7,6 +7,7 @@
 - Objects rendered as a single `Points` buffer with per-vertex colors.
 - Orbit path, trailing path, and terminator glow rendered when a selection is active.
 - Earth group rotates slowly for a sense of motion.
+- Globe initialization errors (including missing WebGL) surface a friendly in-app fallback message instead of a blank stage.
 
 ## Data Model
 - Synthetic orbital object generator in `src/data/orbitalObjects.ts`.
@@ -34,3 +35,4 @@
 - Offline detection keeps the cached dataset visible with a freshness indicator.
 - Simple seeded generator ensures repeatable dataset without network dependency.
 - Point updates are throttled (~12 FPS) to keep interaction smooth with live TLE propagation.
+- When time is paused (or the tab is hidden), heavy point-buffer updates are skipped to reduce background CPU usage.

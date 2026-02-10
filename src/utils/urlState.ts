@@ -8,17 +8,8 @@ import type {
   SnapshotPreset,
   TleCatalogGroup,
 } from '../types'
+import { ALTITUDE_BANDS, ALL_REGIMES, ALL_TYPES, PERFORMANCE_MODES } from '../constants/filters'
 
-const ALL_REGIMES: OrbitRegime[] = ['LEO', 'MEO', 'GEO']
-const ALL_TYPES: OrbitType[] = ['Payload', 'Rocket Body', 'Debris']
-const ALL_ALTITUDE_BANDS: FiltersState['altitudeBand'][] = [
-  'All',
-  '<500km',
-  '500-1200km',
-  '1200-20000km',
-  '20000km+',
-]
-const ALL_PERFORMANCE_MODES: FiltersState['performance'][] = ['high', 'balanced', 'low']
 const SNAPSHOT_PRESET_KEYS: Record<SnapshotPreset, string> = {
   custom: 'c',
   presentation: 'p',
@@ -114,11 +105,11 @@ export const parseUrlState = (): UrlState => {
     regimes: new Set(regimes.length > 0 ? regimes : ALL_REGIMES),
     types: new Set(types.length > 0 ? types : ALL_TYPES),
     constellations: new Set(constellations),
-    altitudeBand: ALL_ALTITUDE_BANDS.includes(altitudeBand as FiltersState['altitudeBand'])
+    altitudeBand: ALTITUDE_BANDS.includes(altitudeBand as FiltersState['altitudeBand'])
       ? (altitudeBand as FiltersState['altitudeBand'])
       : 'All',
     dataset,
-    performance: ALL_PERFORMANCE_MODES.includes(performance) ? performance : 'balanced',
+    performance: PERFORMANCE_MODES.includes(performance) ? performance : 'balanced',
     catalogGroup,
   }
 

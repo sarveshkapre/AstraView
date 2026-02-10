@@ -4,7 +4,6 @@ import { loadTleObjects, refreshTleObjects, TLE_CATALOG_GROUPS } from './data/tl
 import type {
   OrbitObject,
   FiltersState,
-  OrbitRegime,
   OrbitType,
   AltitudeBand,
   ViewState,
@@ -15,13 +14,10 @@ import type {
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
 import { getSearchMatchInfo, parseMultiNoradIds, tokenizeHighlight, tokenizeQuery } from './utils/search'
+import { ALTITUDE_BANDS, ALL_REGIMES, ALL_TYPES } from './constants/filters'
 import './App.css'
 
 const Globe = lazy(() => import('./components/Globe'))
-
-const ALL_REGIMES: OrbitRegime[] = ['LEO', 'MEO', 'GEO']
-const ALL_TYPES: OrbitType[] = ['Payload', 'Rocket Body', 'Debris']
-const ALTITUDE_BANDS: AltitudeBand[] = ['All', '<500km', '500-1200km', '1200-20000km', '20000km+']
 
 const altitudeInBand = (altitude: number, band: AltitudeBand) => {
   switch (band) {

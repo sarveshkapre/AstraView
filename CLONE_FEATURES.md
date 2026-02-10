@@ -7,7 +7,10 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P2] Search relevance: show matched field (name vs constellation/operator vs NORAD) and optionally sort by match strength (exact/prefix/contains). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P1] (Selected) Perf: reduce React render load from live time updates by throttling `timeSeconds` state updates and smoothing time inside the Three.js render loop. Score: impact 5, effort 3, strategic-fit 5, differentiation 1, risk 2, confidence 4.
+- [ ] [P1] (Selected) Perf: throttle camera/view updates (and consequent `history.replaceState`) while OrbitControls are moving; keep density mode responsive without spamming URL updates. Score: impact 4, effort 3, strategic-fit 5, differentiation 1, risk 2, confidence 4.
+- [ ] [P1] (Selected) Data pipeline: prefer CelesTrak GP `FORMAT=json` (OMM) ingestion with `satellite.js json2satrec`, with automatic fallback to TLE; bump cache schema version. Score: impact 4, effort 3, strategic-fit 5, differentiation 1, risk 3, confidence 3.
+- [ ] [P2] (Selected) Search relevance: tokenized multi-keyword matching, show matched field (name vs constellation/operator vs NORAD), and sort by match strength (exact/prefix/contains). Score: impact 4, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
 - [ ] [P2] Catalog import (safe): allow loading a custom TLE URL via a `tle=` URL param, restricted to an allowlist (CelesTrak + user-provided trusted domains). Score: impact 3, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 - [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
@@ -41,7 +44,7 @@
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
-- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, catalog switching, time/inspection tools, and explicit “WebGL required” fallback messaging. Multi-ID search (comma-separated NORAD IDs) is a common power-user affordance in other trackers. Sources: [KeepTrack find a satellite](https://docs.keeptrack.space/basic-tut/find-a-satellite/), [N2YO widget tracker multi-sat syntax](https://www.n2yo.net/widgets/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [get.webgl.org](https://get.webgl.org/).
+- Bounded market scan (untrusted, web): orbit explorers commonly emphasize fast search + selection, time controls, catalog switching, ground track/footprint/orbit overlays, and explicit “WebGL required” fallback messaging. CelesTrak is actively documenting OMM/JSON as the preferred future-facing format (supports 9-digit catalog numbers) which suggests clients should not assume TLE is always available long-term. Sources: KeepTrack “Find a satellite” docs, N2YO product UX cues, CelesTrak GP data formats + OMM notes, and get.webgl.org for failure messaging. (Links in sources already tracked above; refresh each cycle as needed.)
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

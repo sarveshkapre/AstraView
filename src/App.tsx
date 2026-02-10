@@ -56,6 +56,8 @@ const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
   payloads: 'Satellites (payloads only)',
 }
 
+const WATCHLIST_LIMIT = 20
+
 const formatAge = (seconds: number) => {
   if (seconds < 60) return `${seconds}s`
   const minutes = Math.floor(seconds / 60)
@@ -89,6 +91,7 @@ const App = () => {
   const [searchActiveIndex, setSearchActiveIndex] = useState(-1)
   const [filters, setFilters] = useState<FiltersState>(() => defaultFilters())
   const [selected, setSelected] = useState<OrbitObject | null>(null)
+  const [watchlistIds, setWatchlistIds] = useState<string[]>([])
   const [hovered, setHovered] = useState<OrbitObject | null>(null)
   const [hoverPosition, setHoverPosition] = useState<{ x: number; y: number } | null>(null)
   const [timeState, setTimeState] = useState<TimeState>({ mode: 'live', speed: 1 })
@@ -150,6 +153,7 @@ const App = () => {
     if (urlState.filters) setFilters(urlState.filters)
     if (urlState.search) setSearchTerm(urlState.search)
     if (urlState.selectedId) setPendingSelectedId(urlState.selectedId)
+    if (urlState.watchlist) setWatchlistIds(urlState.watchlist)
     if (urlState.time) {
       setTimeState(urlState.time)
     } else if (typeof window !== 'undefined' && 'matchMedia' in window) {
@@ -351,6 +355,14 @@ const App = () => {
       ),
     )
 
+  const watchlistSet = useMemo(() => new Set(watchlistIds), [watchlistIds])
+  const watchlistEntries = useMemo(() => {
+    return watchlistIds.map((id) => ({
+      id,
+      object: baseObjects.find((object) => object.id === id) ?? null,
+    }))
+  }, [baseObjects, watchlistIds])
+
   const filteredObjects = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     return baseObjects.filter((object) => {
@@ -422,6 +434,7 @@ const App = () => {
       filters,
       selectedId: selected?.id,
       search: searchTerm,
+      watchlist: watchlistIds,
       view: viewState,
       time: timeState,
       snapshot: {
@@ -441,6 +454,7 @@ const App = () => {
     snapshotWatermark,
     viewState,
     timeState,
+    watchlistIds,
   ])
 
   const searchResults = useMemo(() => {
@@ -621,6 +635,29 @@ const App = () => {
       window.clearTimeout(toastTimerRef.current)
     }
     toastTimerRef.current = window.setTimeout(() => setToast(null), 2200)
+  }
+
+  const toggleWatchlist = (object: OrbitObject) => {
+    recordMeaningfulAction()
+    setWatchlistIds((prev) => {
+      if (prev.includes(object.id)) return prev.filter((id) => id !== object.id)
+      const next = [object.id, ...prev]
+      if (next.length > WATCHLIST_LIMIT) {
+        showToast(`Watchlist capped at ${WATCHLIST_LIMIT}.`)
+        return next.slice(0, WATCHLIST_LIMIT)
+      }
+      return next
+    })
+  }
+
+  const removeWatchlistId = (id: string) => {
+    recordMeaningfulAction()
+    setWatchlistIds((prev) => prev.filter((item) => item !== id))
+  }
+
+  const clearWatchlist = () => {
+    recordMeaningfulAction()
+    setWatchlistIds([])
   }
 
   const shareLink = async () => {
@@ -850,6 +887,17 @@ const App = () => {
     setFocusObject(object)
     setIsSearchOpen(false)
     setSearchActiveIndex(-1)
+  }
+
+  const handleWatchlistSelect = (entry: { id: string; object: OrbitObject | null }) => {
+    recordMeaningfulAction()
+    if (!entry.object) {
+      showToast('Pinned item not available in the current catalog.')
+      return
+    }
+    recordInspection(entry.object)
+    setSelected(entry.object)
+    setFocusObject(entry.object)
   }
 
   const handleResetView = useCallback(() => {
@@ -1575,6 +1623,13 @@ const App = () => {
                   <button onClick={() => setFocusObject(selected)} type="button">
                     Focus
                   </button>
+                  <button
+                    className="ghost"
+                    onClick={() => toggleWatchlist(selected)}
+                    type="button"
+                  >
+                    {watchlistSet.has(selected.id) ? 'Unpin' : 'Pin'}
+                  </button>
                   <button className="ghost" onClick={handleClearSelection} type="button">
                     Clear
                   </button>
@@ -1582,6 +1637,53 @@ const App = () => {
               </div>
             ) : (
               <div className="empty-state">Click an object to inspect details.</div>
+            )}
+          </section>
+          <section>
+            <div className="section-title">Watchlist</div>
+            {watchlistEntries.length === 0 ? (
+              <div className="empty-state">Pin objects to keep them handy.</div>
+            ) : (
+              <div className="watchlist">
+                {watchlistEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={`watch-item ${entry.object ? '' : 'missing'}`}
+                    onClick={() => handleWatchlistSelect(entry)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleWatchlistSelect(entry)
+                      }
+                    }}
+                  >
+                    <div className="watch-main">
+                      <div className="watch-name">{entry.object?.name ?? entry.id}</div>
+                      <div className="watch-meta">
+                        {entry.object ? `NORAD ${entry.object.noradId} · ${entry.object.regime}` : 'Unavailable in current catalog'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="watch-remove"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        removeWatchlistId(entry.id)
+                      }}
+                      aria-label={`Remove ${entry.object?.name ?? entry.id} from watchlist`}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <div className="watch-actions">
+                  <button type="button" className="ghost" onClick={clearWatchlist}>
+                    Clear watchlist
+                  </button>
+                </div>
+              </div>
             )}
           </section>
           <section className="legend">

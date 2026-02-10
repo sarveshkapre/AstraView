@@ -60,6 +60,7 @@ export type UrlState = {
   filters?: FiltersState
   selectedId?: string | null
   search?: string
+  watchlist?: string[]
   view?: ViewState
   time?: TimeState
   snapshot?: SnapshotState
@@ -89,6 +90,7 @@ export const parseUrlState = (): UrlState => {
       : 'active')
   const search = params.get('q') ?? undefined
   const selectedId = params.get('s')
+  const watchlist = parseList(params.get('w'))
 
   const camera = parseVector(params.get('cam'))
   const target = parseVector(params.get('tar'))
@@ -145,6 +147,7 @@ export const parseUrlState = (): UrlState => {
     filters,
     selectedId: selectedId ?? undefined,
     search,
+    watchlist: watchlist.length > 0 ? watchlist : undefined,
     view,
     time,
     snapshot,
@@ -175,6 +178,7 @@ export const serializeUrlState = (state: UrlState) => {
 
   if (state.selectedId) params.set('s', state.selectedId)
   if (state.search) params.set('q', state.search)
+  if (state.watchlist && state.watchlist.length > 0) params.set('w', state.watchlist.join(','))
 
   if (state.view) {
     params.set('cam', state.view.camera.map((num) => num.toFixed(3)).join(','))

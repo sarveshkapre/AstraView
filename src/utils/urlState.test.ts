@@ -49,6 +49,7 @@ describe('urlState', () => {
       filters,
       selectedId: 'TLE-12345',
       search: 'starlink',
+      watchlist: ['TLE-12345', 'OBJ-12001'],
       view: { camera: [1.23456, 2.34567, 3.45678], target: [0.1, 0.2, 0.3], distance: 4.56789 },
       time: { mode: 'paused', pausedAtSec: 321, speed: 5 },
       snapshot: { mode: 'full', preset: 'social', scale: 2, watermark: false },
@@ -57,6 +58,7 @@ describe('urlState', () => {
     const parsed = parseUrlState()
     expect(parsed.selectedId).toBe('TLE-12345')
     expect(parsed.search).toBe('starlink')
+    expect(parsed.watchlist).toEqual(['TLE-12345', 'OBJ-12001'])
     expect(toSorted(parsed.filters!.regimes)).toEqual(['GEO', 'LEO'])
     expect(toSorted(parsed.filters!.types)).toEqual(['Debris', 'Payload'])
     expect([...parsed.filters!.constellations]).toEqual(['Starlink'])

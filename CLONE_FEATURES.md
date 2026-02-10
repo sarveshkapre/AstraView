@@ -7,12 +7,15 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P2] Search upgrades: highlight matched substrings and support comma-separated numeric search (multiple NORAD IDs). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
-- [ ] [P2] Add “watchlist” (pin objects) with URL encoding for shareable sets. Score: impact 3, effort 3, strategic-fit 3, differentiation 2, risk 2, confidence 3.
+- [ ] [P1] Power search: support comma/newline-separated NORAD ID lists (paste flows) and highlight matched substrings in results. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P2] Add “watchlist” (pin objects) with URL encoding for shareable sets + quick re-select. Score: impact 4, effort 3, strategic-fit 4, differentiation 2, risk 2, confidence 3.
+- [ ] [P2] Search relevance: show matched field (name vs constellation/operator vs NORAD) and optionally sort by match strength (exact/prefix/contains). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
+- [ ] [P2] Catalog import (safe): allow loading a custom TLE URL via a `tle=` URL param, restricted to an allowlist (CelesTrak + user-provided trusted domains). Score: impact 3, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 - [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
 - [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P3] Optional labels layer: show object labels for selected/pinned objects, with a hard cap to protect perf. Score: impact 2, effort 3, strategic-fit 3, differentiation 2, risk 3, confidence 3.
 
 ## Implemented
 - [x] [2026-02-09] Search dropdown polish: keyboard navigation + close on escape/outside click + NORAD ID in results + basic combobox/listbox `aria-*`. Evidence: `src/App.tsx`, `src/App.css`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).

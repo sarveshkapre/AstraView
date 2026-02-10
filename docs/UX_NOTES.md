@@ -21,7 +21,7 @@
 - Trust panel surfaces data source, status, and freshness age.
 - Manual refresh button gives users control of live catalog updates.
 - Data coverage section shows live vs synthetic counts.
-- Skipped TLE entries surface as a small warning under coverage.
+- Skipped live-catalog entries surface as a small warning under coverage.
 - Data health badge shows live/cache/fallback state at a glance.
 - Legend clarifies color encodings for type and source.
 - Performance toggle lets users trade detail for speed.

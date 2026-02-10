@@ -14,6 +14,9 @@
 
 ## Recent Decisions
 - Template: YYYY-MM-DD | Decision | Why | Evidence (tests/logs) | Commit | Confidence (high/medium/low) | Trust (trusted/untrusted)
+- 2026-02-10 | Throttle live time/view commits and smooth time inside the Three.js loop | Reduces React rerender pressure and URL churn while keeping globe motion smooth and responsive | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 0adb68a | high | trusted
+- 2026-02-10 | Prefer CelesTrak GP `FORMAT=json` (OMM) with fallback to TLE; bump cache schema | Aligns ingestion with the format CelesTrak is documenting as future-facing, while keeping a safe fallback path | `npm run test` (pass); `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /dev/null` (HTTP/2 200) | 04f3003 | high | trusted
+- 2026-02-10 | Improve search relevance with tokenized multi-keyword matching + score ordering + matched-field indicators | Makes search more forgiving and informative without adding UI chrome | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 3e2f0f4 | high | trusted
 - 2026-02-10 | Add power search: comma/newline-separated NORAD list paste + match highlighting | Enables fast “paste a set of targets” workflows without adding UI chrome; keeps immediate feedback | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 5714ac2 | high | trusted
 - 2026-02-10 | Add watchlist pins with permalink encoding | Supports repeat inspection flows and makes share links carry a small working set | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 26322b7 | high | trusted
 - 2026-02-09 | Add compact mobile drawer for Filters/Trust and Inspect/Share panels | Keeps globe-first UX on small screens without removing functionality | `npm run test` (pass); `npm run build` (pass) | f54423f | high | trusted
@@ -36,12 +39,17 @@
 - External dependency availability (CelesTrak) remains a product risk; stale-cache mitigation exists but catalog switching could increase surface area.
 
 ## Next Prioritized Tasks
-- Improve search relevance (matched-field display + strength sorting) without adding UI chrome.
+- Add a ground track / footprint overlay for selected objects (toggle), keeping globe-first UX.
 - Consider Web Worker offload for propagation + point updates for larger catalogs.
 - Add optional labels layer for selected/pinned objects with hard caps for perf.
 
 ## Verification Evidence
 - Template: YYYY-MM-DD | Command | Key output | Status (pass/fail)
+- 2026-02-10 | `npm run lint` | `eslint src` | pass
+- 2026-02-10 | `npm run test` | `vitest run` (11 tests) | pass
+- 2026-02-10 | `npm run build` | `vite build` success | pass
+- 2026-02-10 | `npm run preview -- --host 127.0.0.1 --port 4173` + `curl -I http://127.0.0.1:4173` | HTTP 200 OK | pass
+- 2026-02-10 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /dev/null` | HTTP/2 200 | pass
 - 2026-02-10 | `npm run lint` | `eslint src` | pass
 - 2026-02-10 | `npm run test` | `vitest run` (7 tests) | pass
 - 2026-02-10 | `npm run build` | `vite build` success | pass

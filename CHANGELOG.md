@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-02-10
+
+### Added
+- Search relevance upgrades: tokenized multi-keyword matching, score-based ordering, and matched-field indicators in results.
+
+### Changed
+- Performance: throttle live time state commits and OrbitControls view commits; smooth time inside the Three.js render loop.
+- Live catalog ingestion now prefers CelesTrak GP `FORMAT=json` (OMM) with automatic fallback to TLE; cache schema bumped.
+
 ## [1.5.0] - 2026-02-10
 
 ### Added

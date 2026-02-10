@@ -1772,7 +1772,7 @@ const App = () => {
               <div className="legend-items">
                 <div className="legend-item">
                   <span className="dot live" />
-                  Live TLE
+                  Live catalog
                 </div>
                 <div className="legend-item">
                   <span className="dot synthetic" />

@@ -57,6 +57,8 @@ const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
 }
 
 const WATCHLIST_LIMIT = 20
+const TIME_COMMIT_INTERVAL_MS = 90
+const VIEW_COMMIT_INTERVAL_MS = 120
 
 const formatAge = (seconds: number) => {
   if (seconds < 60) return `${seconds}s`
@@ -271,12 +273,15 @@ const App = () => {
 
   useEffect(() => {
     if (timeState.mode !== 'live') {
-      setTimeSeconds(timeState.pausedAtSec ?? 0)
+      const paused = timeState.pausedAtSec ?? 0
+      timeSecondsRef.current = paused
+      setTimeSeconds(paused)
       return
     }
 
     let frame = 0
     let last = performance.now()
+    let lastCommit = last
     const speed = timeState.speed ?? 1
 
     const tick = (now: number) => {
@@ -284,12 +289,18 @@ const App = () => {
 
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
         last = now
+        lastCommit = now
         return
       }
 
       const dt = Math.min(0.25, (now - last) / 1000)
       last = now
-      setTimeSeconds((prev) => prev + dt * speed)
+      timeSecondsRef.current += dt * speed
+
+      if (now - lastCommit >= TIME_COMMIT_INTERVAL_MS) {
+        lastCommit = now
+        setTimeSeconds(timeSecondsRef.current)
+      }
     }
 
     frame = requestAnimationFrame(tick)
@@ -912,12 +923,44 @@ const App = () => {
     handleTimeToggle()
   }, [handleTimeToggle])
 
+  const viewThrottleRef = useRef<{
+    lastCommitMs: number
+    pending: ViewState | null
+    timer: number | null
+  }>({ lastCommitMs: 0, pending: null, timer: null })
+
   const handleViewChange = useCallback((view: ViewState) => {
-    setViewState(view)
+    const now = performance.now()
+    const throttle = viewThrottleRef.current
+    throttle.pending = view
+
+    if (throttle.timer == null && now - throttle.lastCommitMs >= VIEW_COMMIT_INTERVAL_MS) {
+      throttle.lastCommitMs = now
+      throttle.pending = null
+      setViewState(view)
+      return
+    }
+
+    if (throttle.timer != null) return
+    throttle.timer = window.setTimeout(() => {
+      throttle.timer = null
+      const pending = throttle.pending
+      throttle.pending = null
+      if (!pending) return
+      throttle.lastCommitMs = performance.now()
+      setViewState(pending)
+    }, VIEW_COMMIT_INTERVAL_MS)
   }, [])
 
   const handleGlobeInitError = useCallback((message: string) => {
     setGlobeInitError(message)
+  }, [])
+
+  useEffect(() => {
+    const throttle = viewThrottleRef.current
+    return () => {
+      if (throttle.timer != null) window.clearTimeout(throttle.timer)
+    }
   }, [])
 
   useEffect(() => {
@@ -1454,6 +1497,7 @@ const App = () => {
               objects={displayObjects}
               timeSeconds={timeSeconds}
               animateTime={timeState.mode === 'live'}
+              timeSpeed={timeState.speed ?? 1}
               selectedId={selected?.id}
               onHover={handleHover}
               onSelect={handleSelect}

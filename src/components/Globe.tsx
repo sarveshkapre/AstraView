@@ -65,6 +65,7 @@ type GlobeProps = {
   objects: OrbitObject[]
   timeSeconds: number
   animateTime?: boolean
+  timeSpeed?: number
   selectedId?: string | null
   onHover: (object: OrbitObject | null, screen: { x: number; y: number } | null) => void
   onSelect: (object: OrbitObject | null) => void
@@ -82,6 +83,7 @@ const Globe = ({
   objects,
   timeSeconds,
   animateTime = true,
+  timeSpeed = 1,
   selectedId,
   onHover,
   onSelect,
@@ -109,6 +111,9 @@ const Globe = ({
   const objectsRef = useRef<OrbitObject[]>([])
   const hoverRef = useRef<OrbitObject | null>(null)
   const timeRef = useRef<number>(timeSeconds)
+  const timeSpeedRef = useRef<number>(timeSpeed)
+  const timeBaseSecRef = useRef<number>(timeSeconds)
+  const timeBaseMsRef = useRef<number>(typeof performance !== 'undefined' ? performance.now() : 0)
   const animateTimeRef = useRef<boolean>(animateTime)
   const lastVisualTimeRef = useRef<number>(Number.NaN)
   const orbitLineRef = useRef<THREE.Line | null>(null)
@@ -150,7 +155,13 @@ const Globe = ({
 
   useEffect(() => {
     timeRef.current = timeSeconds
+    timeBaseSecRef.current = timeSeconds
+    timeBaseMsRef.current = typeof performance !== 'undefined' ? performance.now() : 0
   }, [timeSeconds])
+
+  useEffect(() => {
+    timeSpeedRef.current = timeSpeed
+  }, [timeSpeed])
 
   useEffect(() => {
     animateTimeRef.current = animateTime
@@ -467,7 +478,9 @@ const Globe = ({
 
       const now = performance.now()
       const shouldUpdate = now - updateTimeRef.current > 80
-      const timeValue = timeRef.current
+      const timeValue = animateTimeRef.current
+        ? timeBaseSecRef.current + ((now - timeBaseMsRef.current) / 1000) * timeSpeedRef.current
+        : timeRef.current
       const timeChanged = timeValue !== lastVisualTimeRef.current
       const shouldAdvanceTime = animateTimeRef.current || timeChanged
 

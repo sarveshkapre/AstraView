@@ -7,8 +7,6 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P1] Power search: support comma/newline-separated NORAD ID lists (paste flows) and highlight matched substrings in results. Score: impact 4, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
-- [ ] [P2] Add “watchlist” (pin objects) with URL encoding for shareable sets + quick re-select. Score: impact 4, effort 3, strategic-fit 4, differentiation 2, risk 2, confidence 3.
 - [ ] [P2] Search relevance: show matched field (name vs constellation/operator vs NORAD) and optionally sort by match strength (exact/prefix/contains). Score: impact 3, effort 3, strategic-fit 4, differentiation 1, risk 2, confidence 3.
 - [ ] [P2] Catalog import (safe): allow loading a custom TLE URL via a `tle=` URL param, restricted to an allowlist (CelesTrak + user-provided trusted domains). Score: impact 3, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
 - [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
@@ -18,6 +16,8 @@
 - [ ] [P3] Optional labels layer: show object labels for selected/pinned objects, with a hard cap to protect perf. Score: impact 2, effort 3, strategic-fit 3, differentiation 2, risk 3, confidence 3.
 
 ## Implemented
+- [x] [2026-02-10] Power search: comma/newline-separated NORAD ID list paste flows + matched substring highlighting in search results. Evidence: `src/App.tsx`, `src/utils/search.ts`, `src/utils/search.test.ts`, `src/App.css`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
+- [x] [2026-02-10] Watchlist (pin objects): pin/unpin from Selection, quick re-select list, and URL encoding for shareable sets. Evidence: `src/App.tsx`, `src/utils/urlState.ts`, `src/utils/urlState.test.ts`, `src/App.css`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
 - [x] [2026-02-09] Search dropdown polish: keyboard navigation + close on escape/outside click + NORAD ID in results + basic combobox/listbox `aria-*`. Evidence: `src/App.tsx`, `src/App.css`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
 - [x] [2026-02-09] Motion hygiene: pause time RAF when paused; skip heavy object updates when time is not advancing; pause animation work while tab is hidden; default to paused time for `prefers-reduced-motion: reduce` (unless URL overrides). Evidence: `src/App.tsx`, `src/components/Globe.tsx`, `npm run lint` (pass), `npm run build` (pass), `npm run preview` + `curl -I` (HTTP 200).
 - [x] [2026-02-09] WebGL capability detection + friendly fallback UI when 3D init fails (try another browser / enable WebGL path). Evidence: `src/components/Globe.tsx`, `src/App.tsx`, `src/App.css`, `npm run build` (pass).
@@ -41,7 +41,7 @@
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
-- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, category/catalog switching, time/inspection tools, and explicit “WebGL required” fallback messaging; several also support loading external TLE catalogs (or multiple NORAD IDs) via URL-driven inputs, and some extend UX into “where to look from my location” sky views. Sources: [KeepTrack external catalogs](https://docs.keeptrack.space/advanced-tut/external-catalog/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [N2YO widget (multi-sat by NORAD ID)](https://www.n2yo.com/satellitemap/), [Heavens-Above live sky view](https://www.heavens-above.com/), [get.webgl.org](https://get.webgl.org/), [NASA Eyes apps](https://eyes.nasa.gov/apps/).
+- Bounded market scan (untrusted, web): orbit/satellite explorers commonly emphasize fast search + selection, catalog switching, time/inspection tools, and explicit “WebGL required” fallback messaging. Multi-ID search (comma-separated NORAD IDs) is a common power-user affordance in other trackers. Sources: [KeepTrack find a satellite](https://docs.keeptrack.space/basic-tut/find-a-satellite/), [N2YO widget tracker multi-sat syntax](https://www.n2yo.net/widgets/), [CelesTrak GP query docs](https://www.celestrak.org/NORAD/documentation/gp-data-formats.php), [get.webgl.org](https://get.webgl.org/).
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

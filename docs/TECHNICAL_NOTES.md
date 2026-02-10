@@ -26,9 +26,13 @@
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.
+- Watchlist pins are encoded in URL query params to keep shareable sets reproducible.
 - The selected CelesTrak catalog group is encoded in URL query params to keep permalinks reproducible.
 - Snapshot mode, watermark, scale, and preset are encoded in URL query params for reproducible exports.
 - URL state is updated via `history.replaceState`.
+
+## Search
+- Multi-NORAD list parsing lives in `src/utils/search.ts` and is activated only when explicit list delimiters are present (comma/newline/semicolon).
 
 ## Performance
 - Density mode reduces point size and down-samples when zoomed out or when object count is high.

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-02-10
+
+### Added
+- Power search: paste comma/newline-separated NORAD ID lists and see highlighted matches in the search dropdown.
+- Watchlist pins: pin/unpin objects and share pinned sets via permalinks.
+
 ## [1.4.0] - 2026-02-09
 
 ### Added

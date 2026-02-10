@@ -10,7 +10,9 @@
 - Orbit control: click-drag to rotate, scroll to zoom.
 - Search and filters update instantly.
 - Search dropdown supports keyboard navigation (up/down/enter) and closes on escape/outside click.
+- Power search supports pasting comma/newline-separated NORAD ID lists.
 - Hover = tooltip, click = selection + orbit path.
+- Watchlist pins let users pin/unpin objects and quickly re-select from a compact list.
 - On small screens, Filters/Trust and Inspect/Share panels live in a compact drawer so the globe stays primary.
 - Loading overlay appears briefly on startup to confirm activity.
 - Time scrubber allows manual inspection of a fixed window.

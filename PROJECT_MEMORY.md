@@ -14,6 +14,8 @@
 
 ## Recent Decisions
 - Template: YYYY-MM-DD | Decision | Why | Evidence (tests/logs) | Commit | Confidence (high/medium/low) | Trust (trusted/untrusted)
+- 2026-02-10 | Add power search: comma/newline-separated NORAD list paste + match highlighting | Enables fast “paste a set of targets” workflows without adding UI chrome; keeps immediate feedback | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 5714ac2 | high | trusted
+- 2026-02-10 | Add watchlist pins with permalink encoding | Supports repeat inspection flows and makes share links carry a small working set | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 26322b7 | high | trusted
 - 2026-02-09 | Add compact mobile drawer for Filters/Trust and Inspect/Share panels | Keeps globe-first UX on small screens without removing functionality | `npm run test` (pass); `npm run build` (pass) | f54423f | high | trusted
 - 2026-02-09 | Add safe CelesTrak catalog-group selector (active/stations/starlink/oneweb/gps/iridium) with per-group caching; persist in permalinks | Improves usefulness for common cohorts (Starlink/GPS/etc.) while keeping trust + reproducibility | `npm run test` (pass); `npm run build` (pass) | 02524d9 | high | trusted
 - 2026-02-09 | Add Vitest unit tests for URL-state + run tests in CI; scope test discovery to AstraView `src/` | Prevent permalink regressions and avoid nested-project test noise in this workspace | `npm run test` (pass) | a4a48b3 | high | trusted
@@ -34,12 +36,16 @@
 - External dependency availability (CelesTrak) remains a product risk; stale-cache mitigation exists but catalog switching could increase surface area.
 
 ## Next Prioritized Tasks
-- Improve search relevance and power-user flows (match highlighting, comma-separated multi-NORAD search).
+- Improve search relevance (matched-field display + strength sorting) without adding UI chrome.
 - Consider Web Worker offload for propagation + point updates for larger catalogs.
-- Add watchlist (pinned objects) with URL encoding for shareable sets.
+- Add optional labels layer for selected/pinned objects with hard caps for perf.
 
 ## Verification Evidence
 - Template: YYYY-MM-DD | Command | Key output | Status (pass/fail)
+- 2026-02-10 | `npm run lint` | `eslint src` | pass
+- 2026-02-10 | `npm run test` | `vitest run` (7 tests) | pass
+- 2026-02-10 | `npm run build` | `vite build` success | pass
+- 2026-02-10 | `npm run preview -- --host 127.0.0.1 --port 4173` + `curl -I http://127.0.0.1:4173` | HTTP 200 OK | pass
 - 2026-02-09 | `npm run lint` | `eslint src` | pass
 - 2026-02-09 | `npm run test` | `vitest run` (3 tests) | pass
 - 2026-02-09 | `npm run build` | `vite build` success | pass

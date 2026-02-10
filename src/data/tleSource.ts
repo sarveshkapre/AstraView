@@ -1,10 +1,12 @@
 import * as satellite from 'satellite.js'
+import type { OMMJsonObject } from 'satellite.js'
 import type { OrbitObject, OrbitRegime, OrbitType, TleCatalogGroup } from '../types'
 
 const EARTH_RADIUS_KM = 6371
 const MU = 398600.4418
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000
 const FETCH_TIMEOUT_MS = 12000
+type CatalogFormat = 'tle' | 'json'
 
 export const TLE_CATALOG_GROUPS: { key: TleCatalogGroup; label: string; groupParam: string }[] = [
   { key: 'active', label: 'Active', groupParam: 'ACTIVE' },
@@ -19,10 +21,10 @@ const GROUP_PARAM_BY_KEY = new Map(TLE_CATALOG_GROUPS.map((entry) => [entry.key,
 const labelForGroup = (group: TleCatalogGroup) =>
   TLE_CATALOG_GROUPS.find((entry) => entry.key === group)?.label ?? 'Active'
 
-const cacheKeyForGroup = (group: TleCatalogGroup) => `astraview.tle.gp.${group}.v1`
-const urlForGroup = (group: TleCatalogGroup) => {
+const cacheKeyForGroup = (group: TleCatalogGroup) => `astraview.tle.gp.${group}.v2`
+const urlForGroup = (group: TleCatalogGroup, format: CatalogFormat) => {
   const param = GROUP_PARAM_BY_KEY.get(group) ?? 'ACTIVE'
-  return `https://celestrak.org/NORAD/elements/gp.php?GROUP=${encodeURIComponent(param)}&FORMAT=tle`
+  return `https://celestrak.org/NORAD/elements/gp.php?GROUP=${encodeURIComponent(param)}&FORMAT=${format}`
 }
 
 const guessConstellation = (name: string) => {
@@ -114,31 +116,80 @@ const parseTleText = (tleText: string): OrbitObject[] => {
   return objects
 }
 
-const readCache = (group: TleCatalogGroup) => {
+export const parseCelestrakJsonText = (jsonText: string): OrbitObject[] => {
+  const parsed = JSON.parse(jsonText) as unknown
+  const entries = Array.isArray(parsed) ? (parsed as OMMJsonObject[]) : parsed ? [parsed as OMMJsonObject] : []
+
+  const objects: OrbitObject[] = []
+  for (const entry of entries) {
+    const name = entry.OBJECT_NAME ?? 'Unknown'
+    const satrec = satellite.json2satrec(entry)
+    const noradId = Number(entry.NORAD_CAT_ID ?? satrec.satnum)
+    const altitudeKm = Math.max(0, Math.round(estimateAltitudeKm(satrec)))
+    const periodMin = satrec.no ? (2 * Math.PI) / satrec.no : 0
+    const regime = regimeFromAltitude(altitudeKm)
+    const constellation = guessConstellation(name)
+
+    objects.push({
+      id: `TLE-${noradId}`,
+      noradId,
+      name,
+      regime,
+      type: 'Payload' as OrbitType,
+      altitudeKm,
+      inclinationDeg: Math.round((satrec.inclo * 180) / Math.PI),
+      raanDeg: Math.round((satrec.nodeo * 180) / Math.PI),
+      meanAnomalyDeg: Math.round((satrec.mo * 180) / Math.PI),
+      periodMin,
+      operator: guessOperator(name, constellation),
+      constellation,
+      source: 'tle',
+      satrec,
+    })
+  }
+
+  return objects
+}
+
+const parseCatalogText = (format: CatalogFormat, text: string) => {
+  if (format === 'json') return parseCelestrakJsonText(text)
+  return parseTleText(text)
+}
+
+type CachePayloadV1 = { fetchedAt: number; tle: string }
+type CachePayloadV2 = { fetchedAt: number; format: CatalogFormat; data: string }
+
+const readCache = (group: TleCatalogGroup): CachePayloadV2 | null => {
   if (typeof localStorage === 'undefined') return null
   const raw = localStorage.getItem(cacheKeyForGroup(group))
   if (!raw) return null
   try {
-    const parsed = JSON.parse(raw) as { fetchedAt: number; tle: string }
-    if (!parsed?.fetchedAt || !parsed?.tle) return null
-    return parsed
+    const parsed = JSON.parse(raw) as CachePayloadV1 | CachePayloadV2
+    if (!parsed?.fetchedAt) return null
+    if ('data' in parsed && parsed.data && parsed.format) {
+      return parsed
+    }
+    if ('tle' in parsed && parsed.tle) {
+      return { fetchedAt: parsed.fetchedAt, format: 'tle', data: parsed.tle }
+    }
+    return null
   } catch {
     return null
   }
 }
 
-const writeCache = (group: TleCatalogGroup, payload: { fetchedAt: number; tle: string }) => {
+const writeCache = (group: TleCatalogGroup, payload: CachePayloadV2) => {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(cacheKeyForGroup(group), JSON.stringify(payload))
 }
 
-const fetchTleText = async (group: TleCatalogGroup) => {
+const fetchCatalogText = async (group: TleCatalogGroup, format: CatalogFormat) => {
   const controller = new AbortController()
   const timeout = globalThis.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
-    const response = await fetch(urlForGroup(group), { signal: controller.signal })
+    const response = await fetch(urlForGroup(group, format), { signal: controller.signal })
     if (!response.ok) {
-      throw new Error(`TLE fetch failed: ${response.status}`)
+      throw new Error(`Catalog fetch failed (${format}): ${response.status}`)
     }
     return await response.text()
   } finally {
@@ -152,6 +203,7 @@ export type TleLoadResult = {
   source: 'network' | 'cache' | 'stale-cache'
   group: TleCatalogGroup
   groupLabel: string
+  format: CatalogFormat
 }
 
 export const loadTleObjects = async (
@@ -162,75 +214,97 @@ export const loadTleObjects = async (
   const cached = readCache(group)
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
     return {
-      objects: parseTleText(cached.tle),
+      objects: parseCatalogText(cached.format, cached.data),
       fetchedAt: new Date(cached.fetchedAt),
       source: 'cache' as const,
       group,
       groupLabel: labelForGroup(group),
+      format: cached.format,
     }
   }
 
   if (!allowNetwork) {
     if (cached) {
       return {
-        objects: parseTleText(cached.tle),
+        objects: parseCatalogText(cached.format, cached.data),
         fetchedAt: new Date(cached.fetchedAt),
         source: 'stale-cache' as const,
         group,
         groupLabel: labelForGroup(group),
+        format: cached.format,
       }
     }
-    throw new Error('Offline and no cached TLE data is available for this catalog group')
+    throw new Error('Offline and no cached catalog data is available for this group')
   }
 
   try {
-    const tle = await fetchTleText(group)
+    let format: CatalogFormat = 'json'
+    let data = await fetchCatalogText(group, 'json')
+    try {
+      // Validate that we can parse before committing to cache/return.
+      parseCatalogText(format, data)
+    } catch {
+      format = 'tle'
+      data = await fetchCatalogText(group, 'tle')
+    }
+
     const fetchedAt = Date.now()
-    writeCache(group, { fetchedAt, tle })
+    writeCache(group, { fetchedAt, format, data })
     return {
-      objects: parseTleText(tle),
+      objects: parseCatalogText(format, data),
       fetchedAt: new Date(fetchedAt),
       source: 'network' as const,
       group,
       groupLabel: labelForGroup(group),
+      format,
     }
   } catch {
     if (cached) {
       return {
-        objects: parseTleText(cached.tle),
+        objects: parseCatalogText(cached.format, cached.data),
         fetchedAt: new Date(cached.fetchedAt),
         source: 'stale-cache' as const,
         group,
         groupLabel: labelForGroup(group),
+        format: cached.format,
       }
     }
-    throw new Error('TLE fetch failed and no cache was available')
+    throw new Error('Catalog fetch failed and no cache was available')
   }
 }
 
 export const refreshTleObjects = async (group: TleCatalogGroup): Promise<TleLoadResult> => {
   try {
-    const tle = await fetchTleText(group)
+    let format: CatalogFormat = 'json'
+    let data = await fetchCatalogText(group, 'json')
+    try {
+      parseCatalogText(format, data)
+    } catch {
+      format = 'tle'
+      data = await fetchCatalogText(group, 'tle')
+    }
     const fetchedAt = Date.now()
-    writeCache(group, { fetchedAt, tle })
+    writeCache(group, { fetchedAt, format, data })
     return {
-      objects: parseTleText(tle),
+      objects: parseCatalogText(format, data),
       fetchedAt: new Date(fetchedAt),
       source: 'network' as const,
       group,
       groupLabel: labelForGroup(group),
+      format,
     }
   } catch {
     const cached = readCache(group)
     if (cached) {
       return {
-        objects: parseTleText(cached.tle),
+        objects: parseCatalogText(cached.format, cached.data),
         fetchedAt: new Date(cached.fetchedAt),
         source: 'stale-cache' as const,
         group,
         groupLabel: labelForGroup(group),
+        format: cached.format,
       }
     }
-    throw new Error('TLE refresh failed and no cache was available')
+    throw new Error('Catalog refresh failed and no cache was available')
   }
 }

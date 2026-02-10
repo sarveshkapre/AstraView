@@ -541,7 +541,7 @@ const App = () => {
       : 'Synthetic demo catalog'
   const dataStatusLabel =
     tleStatus === 'loading'
-      ? 'Fetching live TLE...'
+      ? 'Fetching live catalog...'
       : tleStatus === 'error'
         ? 'Live fetch failed, using cached or demo data.'
         : tleSourceMode === 'network'
@@ -1042,7 +1042,7 @@ const App = () => {
       } else {
         showToast(
           invalidCount > 0
-            ? `Live catalog refreshed. ${invalidCount} TLEs skipped.`
+            ? `Live catalog refreshed. ${invalidCount} entries skipped.`
             : 'Live catalog refreshed.',
         )
       }
@@ -1409,8 +1409,8 @@ const App = () => {
               <p>
                 {DATASET_LABELS[filters.dataset]}.{' '}
                 {filters.dataset === 'payloads'
-                  ? 'Payloads use live TLE when available, with synthetic fallback if offline.'
-                  : 'Payloads use live TLE when available; synthetic data fills non-payload categories.'}
+                  ? 'Payloads use the live CelesTrak catalog when available, with synthetic fallback if offline.'
+                  : 'Payloads use the live CelesTrak catalog when available; synthetic data fills non-payload categories.'}
               </p>
             </div>
             <div className="trust-item">
@@ -1471,7 +1471,7 @@ const App = () => {
               </p>
               {coverage.invalidTle > 0 && (
                 <p className="trust-note">
-                  {formatNumber(coverage.invalidTle)} TLE entries skipped due to propagation
+                  {formatNumber(coverage.invalidTle)} catalog entries skipped due to propagation
                   errors.
                 </p>
               )}

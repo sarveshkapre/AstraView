@@ -16,7 +16,7 @@
 - Live catalog ingestion via CelesTrak GP with localStorage caching and fallback to synthetic.
 
 ## Data Pipeline
-- `src/data/tleSource.ts` prefers CelesTrak GP `FORMAT=json` (OMM) and falls back to TLE if needed; cached for 6 hours and parsed into `OrbitObject`.
+- `src/data/tleSource.ts` prefers CelesTrak GP `FORMAT=json` (OMM) and falls back to TLE if needed; cached for 6 hours and parsed into `OrbitObject`. When the JSON payload is too large for localStorage, caching falls back to the smaller TLE text when available.
 - CelesTrak "Current Data" catalog groups are curated and whitelisted; each group has its own cache key.
 - Live fetches use an abort timeout guard; failed refreshes can fall back to stale cache before synthetic-only mode.
 - `satellite.js` propagates live objects to ECEF for rendering on the globe (TLE via `twoline2satrec`, OMM via `json2satrec`).

@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Performance: throttle live time state commits and OrbitControls view commits; smooth time inside the Three.js render loop.
-- Live catalog ingestion now prefers CelesTrak GP `FORMAT=json` (OMM) with automatic fallback to TLE; cache schema bumped.
+- Live catalog ingestion now prefers CelesTrak GP `FORMAT=json` (OMM) with automatic fallback to TLE; cache schema bumped (and cache falls back to TLE when JSON is too large for localStorage).
 
 ## [1.5.0] - 2026-02-10
 

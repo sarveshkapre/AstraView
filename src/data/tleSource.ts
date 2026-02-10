@@ -7,6 +7,7 @@ const MU = 398600.4418
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000
 const FETCH_TIMEOUT_MS = 12000
 type CatalogFormat = 'tle' | 'json'
+const MAX_CACHE_CHARS = 4_500_000
 
 export const TLE_CATALOG_GROUPS: { key: TleCatalogGroup; label: string; groupParam: string }[] = [
   { key: 'active', label: 'Active', groupParam: 'ACTIVE' },
@@ -180,7 +181,11 @@ const readCache = (group: TleCatalogGroup): CachePayloadV2 | null => {
 
 const writeCache = (group: TleCatalogGroup, payload: CachePayloadV2) => {
   if (typeof localStorage === 'undefined') return
-  localStorage.setItem(cacheKeyForGroup(group), JSON.stringify(payload))
+  try {
+    localStorage.setItem(cacheKeyForGroup(group), JSON.stringify(payload))
+  } catch {
+    // localStorage quota issues should never prevent live loads.
+  }
 }
 
 const fetchCatalogText = async (group: TleCatalogGroup, format: CatalogFormat) => {
@@ -249,7 +254,19 @@ export const loadTleObjects = async (
     }
 
     const fetchedAt = Date.now()
-    writeCache(group, { fetchedAt, format, data })
+    if (data.length <= MAX_CACHE_CHARS) {
+      writeCache(group, { fetchedAt, format, data })
+    } else if (format === 'json') {
+      // JSON OMM can exceed localStorage quotas; cache a smaller TLE fallback when possible.
+      try {
+        const tle = await fetchCatalogText(group, 'tle')
+        if (tle.length <= MAX_CACHE_CHARS) {
+          writeCache(group, { fetchedAt, format: 'tle', data: tle })
+        }
+      } catch {
+        // Ignore cache failures; live objects still load.
+      }
+    }
     return {
       objects: parseCatalogText(format, data),
       fetchedAt: new Date(fetchedAt),
@@ -284,7 +301,18 @@ export const refreshTleObjects = async (group: TleCatalogGroup): Promise<TleLoad
       data = await fetchCatalogText(group, 'tle')
     }
     const fetchedAt = Date.now()
-    writeCache(group, { fetchedAt, format, data })
+    if (data.length <= MAX_CACHE_CHARS) {
+      writeCache(group, { fetchedAt, format, data })
+    } else if (format === 'json') {
+      try {
+        const tle = await fetchCatalogText(group, 'tle')
+        if (tle.length <= MAX_CACHE_CHARS) {
+          writeCache(group, { fetchedAt, format: 'tle', data: tle })
+        }
+      } catch {
+        // Ignore cache failures; refresh still succeeds.
+      }
+    }
     return {
       objects: parseCatalogText(format, data),
       fetchedAt: new Date(fetchedAt),

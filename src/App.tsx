@@ -14,7 +14,7 @@ import type {
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
-import { parseMultiNoradIds, tokenizeHighlight } from './utils/search'
+import { getSearchMatchInfo, parseMultiNoradIds, tokenizeHighlight, tokenizeQuery } from './utils/search'
 import './App.css'
 
 const Globe = lazy(() => import('./components/Globe'))
@@ -345,14 +345,11 @@ const App = () => {
   const multiNoradSet = useMemo(() => (multiNoradIds ? new Set(multiNoradIds) : null), [multiNoradIds])
   const highlightQuery = useMemo(() => {
     if (multiNoradIds) return ''
-    const raw = searchTerm.trim()
-    if (!raw) return ''
-    const parts = raw.split(/\s+/).filter(Boolean)
-    let best = parts[0] ?? ''
-    for (const part of parts) {
-      if (part.length > best.length) best = part
-    }
-    return best
+    const tokens = tokenizeQuery(searchTerm)
+    if (tokens.length === 0) return ''
+    const alphaTokens = tokens.filter((token) => /[a-z]/.test(token))
+    const pool = alphaTokens.length > 0 ? alphaTokens : tokens
+    return pool.reduce((best, token) => (token.length > best.length ? token : best), pool[0] ?? '')
   }, [multiNoradIds, searchTerm])
 
   const renderHighlight = (text: string, query: string) =>
@@ -376,6 +373,7 @@ const App = () => {
 
   const filteredObjects = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
+    const tokens = query ? tokenizeQuery(query) : []
     return baseObjects.filter((object) => {
       if (filters.dataset === 'payloads' && object.type !== 'Payload') return false
       if (filters.regimes.size && !filters.regimes.has(object.regime)) return false
@@ -388,16 +386,21 @@ const App = () => {
       if (multiNoradSet) {
         return multiNoradSet.has(object.noradId.toString())
       }
-      if (query) {
+      if (tokens.length > 0) {
         const name = object.name.toLowerCase()
         const id = object.noradId.toString()
         if (name === query || id === query) return true
-        const target = `${name} ${object.constellation ?? ''} ${object.operator ?? ''}`.toLowerCase()
-        if (!target.includes(query)) return false
+        const target = `${name} ${id} ${object.constellation ?? ''} ${object.operator ?? ''}`.toLowerCase()
+        if (!tokens.every((token) => target.includes(token))) return false
       }
       return true
     })
   }, [baseObjects, filters, multiNoradSet, searchTerm])
+
+  type SearchResultEntry = {
+    object: OrbitObject
+    match: ReturnType<typeof getSearchMatchInfo>
+  }
 
   const clustersEnabled = filteredObjects.length > 1500
   const cameraDistance = viewState?.distance ?? 3.2
@@ -481,16 +484,20 @@ const App = () => {
           return a.name.localeCompare(b.name)
         })
         .slice(0, 6)
+        .map((object) => ({
+          object,
+          match: { field: 'norad', strength: 'tokens', score: 900 } as const,
+        }))
     }
-    const exact = filteredObjects.filter(
-      (object) =>
-        object.name.toLowerCase() === query || object.noradId.toString() === query,
-    )
-    const remainder = filteredObjects.filter(
-      (object) =>
-        object.name.toLowerCase() !== query && object.noradId.toString() !== query,
-    )
-    return [...exact, ...remainder].slice(0, 6)
+    const matches: SearchResultEntry[] = filteredObjects.map((object) => ({
+      object,
+      match: getSearchMatchInfo(object, query),
+    }))
+    matches.sort((a, b) => {
+      if (a.match.score !== b.match.score) return b.match.score - a.match.score
+      return a.object.name.localeCompare(b.object.name)
+    })
+    return matches.slice(0, 6)
   }, [filteredObjects, multiNoradIds, searchTerm])
 
   useEffect(() => {
@@ -1181,7 +1188,7 @@ const App = () => {
                   const selectedResult = searchResults[searchActiveIndex]
                   if (!selectedResult) return
                   event.preventDefault()
-                  handleSearchSelect(selectedResult)
+                  handleSearchSelect(selectedResult.object)
                 }
               }}
               role="combobox"
@@ -1193,7 +1200,7 @@ const App = () => {
               aria-autocomplete="list"
               aria-activedescendant={
                 searchActiveIndex >= 0 && searchResults[searchActiveIndex]
-                  ? `search-option-${searchResults[searchActiveIndex].id}`
+                  ? `search-option-${searchResults[searchActiveIndex].object.id}`
                   : undefined
               }
               aria-label="Search satellites"
@@ -1206,7 +1213,17 @@ const App = () => {
                     : `Top matches · ${formatNumber(filteredObjects.length)} total`}
                 </div>
                 <div className="search-list" id="search-listbox" role="listbox">
-                  {searchResults.map((object, index) => (
+                  {searchResults.map((entry, index) => {
+                    const object = entry.object
+                    const matchField =
+                      entry.match.field === 'norad'
+                        ? 'NORAD'
+                        : entry.match.field === 'name'
+                          ? 'Name'
+                          : entry.match.field === 'constellation'
+                            ? 'Constellation'
+                            : 'Operator'
+                    return (
                     <div
                       key={object.id}
                       id={`search-option-${object.id}`}
@@ -1224,10 +1241,11 @@ const App = () => {
                           object.noradId.toString(),
                           multiNoradIds ? object.noradId.toString() : highlightQuery,
                         )}{' '}
-                        · {object.regime} · {object.type}
+                        · {object.regime} · {object.type} · {matchField}
                       </span>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}

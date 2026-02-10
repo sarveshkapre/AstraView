@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseMultiNoradIds, tokenizeHighlight } from './search'
+import { getSearchMatchInfo, parseMultiNoradIds, tokenizeHighlight, tokenizeQuery } from './search'
 
 describe('parseMultiNoradIds', () => {
   it('returns null when no explicit list delimiter is present', () => {
@@ -29,3 +29,23 @@ describe('tokenizeHighlight', () => {
   })
 })
 
+describe('tokenizeQuery', () => {
+  it('extracts alphanumeric tokens and strips punctuation', () => {
+    expect(tokenizeQuery('  ISS, 25544;  oneweb-0123 ')).toEqual(['iss', '25544', 'oneweb', '0123'])
+  })
+})
+
+describe('getSearchMatchInfo', () => {
+  const candidate = { name: 'ISS (ZARYA)', noradId: 25544, constellation: undefined, operator: 'NASA' }
+
+  it('prefers exact NORAD matches', () => {
+    expect(getSearchMatchInfo(candidate, '25544')).toMatchObject({ field: 'norad', strength: 'exact' })
+  })
+
+  it('scores name token matches above operator token matches', () => {
+    const byName = getSearchMatchInfo(candidate, 'iss')
+    const byOperator = getSearchMatchInfo(candidate, 'nasa')
+    expect(byName.field).toBe('name')
+    expect(byName.score).toBeGreaterThan(byOperator.score)
+  })
+})

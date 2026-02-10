@@ -14,6 +14,7 @@ import type {
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
+import { parseMultiNoradIds, tokenizeHighlight } from './utils/search'
 import './App.css'
 
 const Globe = lazy(() => import('./components/Globe'))
@@ -325,6 +326,31 @@ const App = () => {
     return [...set].sort()
   }, [baseObjects])
 
+  const multiNoradIds = useMemo(() => parseMultiNoradIds(searchTerm), [searchTerm])
+  const multiNoradSet = useMemo(() => (multiNoradIds ? new Set(multiNoradIds) : null), [multiNoradIds])
+  const highlightQuery = useMemo(() => {
+    if (multiNoradIds) return ''
+    const raw = searchTerm.trim()
+    if (!raw) return ''
+    const parts = raw.split(/\s+/).filter(Boolean)
+    let best = parts[0] ?? ''
+    for (const part of parts) {
+      if (part.length > best.length) best = part
+    }
+    return best
+  }, [multiNoradIds, searchTerm])
+
+  const renderHighlight = (text: string, query: string) =>
+    tokenizeHighlight(text, query).map((token, index) =>
+      token.match ? (
+        <mark key={`${index}-${token.text}`} className="search-match">
+          {token.text}
+        </mark>
+      ) : (
+        <span key={`${index}-${token.text}`}>{token.text}</span>
+      ),
+    )
+
   const filteredObjects = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     return baseObjects.filter((object) => {
@@ -336,6 +362,9 @@ const App = () => {
       }
       if (filters.constellations.size && !object.constellation) return false
       if (!altitudeInBand(object.altitudeKm, filters.altitudeBand)) return false
+      if (multiNoradSet) {
+        return multiNoradSet.has(object.noradId.toString())
+      }
       if (query) {
         const name = object.name.toLowerCase()
         const id = object.noradId.toString()
@@ -345,7 +374,7 @@ const App = () => {
       }
       return true
     })
-  }, [baseObjects, filters, searchTerm])
+  }, [baseObjects, filters, multiNoradSet, searchTerm])
 
   const clustersEnabled = filteredObjects.length > 1500
   const cameraDistance = viewState?.distance ?? 3.2
@@ -417,6 +446,17 @@ const App = () => {
   const searchResults = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
     if (!query) return []
+    if (multiNoradIds) {
+      const order = new Map(multiNoradIds.map((id, index) => [id, index]))
+      return [...filteredObjects]
+        .sort((a, b) => {
+          const ai = order.get(a.noradId.toString()) ?? 999999
+          const bi = order.get(b.noradId.toString()) ?? 999999
+          if (ai !== bi) return ai - bi
+          return a.name.localeCompare(b.name)
+        })
+        .slice(0, 6)
+    }
     const exact = filteredObjects.filter(
       (object) =>
         object.name.toLowerCase() === query || object.noradId.toString() === query,
@@ -426,7 +466,7 @@ const App = () => {
         object.name.toLowerCase() !== query && object.noradId.toString() !== query,
     )
     return [...exact, ...remainder].slice(0, 6)
-  }, [filteredObjects, searchTerm])
+  }, [filteredObjects, multiNoradIds, searchTerm])
 
   useEffect(() => {
     if (searchActiveIndex < 0) return
@@ -1003,7 +1043,7 @@ const App = () => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search satellites, NORAD ID, constellation"
+              placeholder="Search name, NORAD ID, constellation (paste IDs: 25544, 20580)"
               value={searchTerm}
               onChange={(event) => {
                 const next = event.target.value
@@ -1070,7 +1110,9 @@ const App = () => {
             {isSearchOpen && searchResults.length > 0 && (
               <div className="search-results">
                 <div className="search-meta">
-                  Top matches · {formatNumber(filteredObjects.length)} total
+                  {multiNoradIds
+                    ? `NORAD list · ${formatNumber(filteredObjects.length)} of ${formatNumber(multiNoradIds.length)} IDs match`
+                    : `Top matches · ${formatNumber(filteredObjects.length)} total`}
                 </div>
                 <div className="search-list" id="search-listbox" role="listbox">
                   {searchResults.map((object, index) => (
@@ -1084,9 +1126,14 @@ const App = () => {
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={() => handleSearchSelect(object)}
                     >
-                      <span>{object.name}</span>
+                      <span className="search-item-name">{renderHighlight(object.name, highlightQuery)}</span>
                       <span className="search-item-meta">
-                        NORAD {object.noradId} · {object.regime} · {object.type}
+                        NORAD{' '}
+                        {renderHighlight(
+                          object.noradId.toString(),
+                          multiNoradIds ? object.noradId.toString() : highlightQuery,
+                        )}{' '}
+                        · {object.regime} · {object.type}
                       </span>
                     </div>
                   ))}
@@ -1095,7 +1142,11 @@ const App = () => {
             )}
             {isSearchOpen && searchTerm.trim() && filteredObjects.length === 0 && (
               <div className="search-results">
-                <div className="search-meta">No matches. Try a different keyword.</div>
+                <div className="search-meta">
+                  {multiNoradIds
+                    ? 'No matching IDs. Check catalog group, dataset, or filters.'
+                    : 'No matches. Try a different keyword.'}
+                </div>
               </div>
             )}
           </div>

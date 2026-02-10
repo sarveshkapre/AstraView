@@ -198,6 +198,14 @@ body {
   font-size: 0.8rem;
 }
 
+.search-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .search-item:hover,
 .search-item.active,
 .search-item[aria-selected='true'] {
@@ -208,6 +216,16 @@ body {
 .search-item-meta {
   color: var(--muted);
   font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.search-match {
+  background: rgba(56, 189, 248, 0.22);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #e2e8f0;
+  padding: 0 0.18rem;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .search button {

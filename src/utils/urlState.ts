@@ -7,6 +7,7 @@ import type {
   SnapshotState,
   SnapshotPreset,
   TleCatalogGroup,
+  OverlayState,
 } from '../types'
 import { ALTITUDE_BANDS, ALL_REGIMES, ALL_TYPES, PERFORMANCE_MODES } from '../constants/filters'
 
@@ -55,6 +56,7 @@ export type UrlState = {
   view?: ViewState
   time?: TimeState
   snapshot?: SnapshotState
+  overlays?: OverlayState
 }
 
 export const parseUrlState = (): UrlState => {
@@ -133,6 +135,9 @@ export const parseUrlState = (): UrlState => {
     scale: snapshotScale,
     watermark: snapshotWatermark,
   }
+  const overlays: OverlayState = {
+    groundTrack: params.get('gt') === '1',
+  }
 
   return {
     filters,
@@ -142,6 +147,7 @@ export const parseUrlState = (): UrlState => {
     view,
     time,
     snapshot,
+    overlays,
   }
 }
 
@@ -200,6 +206,10 @@ export const serializeUrlState = (state: UrlState) => {
     if (!state.snapshot.watermark) {
       params.set('xw', '0')
     }
+  }
+
+  if (state.overlays?.groundTrack) {
+    params.set('gt', '1')
   }
 
   const query = params.toString()

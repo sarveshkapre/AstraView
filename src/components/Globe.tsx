@@ -73,6 +73,7 @@ type GlobeProps = {
   focusObject?: OrbitObject | null
   initialView?: ViewState
   pointSize?: number
+  showGroundTrack?: boolean
   externalCommand?: 'reset' | 'earth' | null
   onCommandHandled?: () => void
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void
@@ -91,6 +92,7 @@ const Globe = ({
   focusObject,
   initialView,
   pointSize = 0.02,
+  showGroundTrack = false,
   externalCommand,
   onCommandHandled,
   onCanvasReady,
@@ -118,9 +120,11 @@ const Globe = ({
   const lastVisualTimeRef = useRef<number>(Number.NaN)
   const orbitLineRef = useRef<THREE.Line | null>(null)
   const trailLineRef = useRef<THREE.Line | null>(null)
+  const groundTrackLineRef = useRef<THREE.Line | null>(null)
   const selectedMarkerRef = useRef<THREE.Mesh | null>(null)
   const hoverMarkerRef = useRef<THREE.Mesh | null>(null)
   const updateTimeRef = useRef<number>(0)
+  const lastGroundTrackUpdateTimeRef = useRef<number>(Number.NaN)
   const selectedIdRef = useRef<string | null | undefined>(selectedId)
   const lastSelectedIdRef = useRef<string | null | undefined>(selectedId)
 
@@ -558,6 +562,37 @@ const Globe = ({
         }
       }
 
+      if (groundTrackLineRef.current && selectedIdValue && shouldUpdate && shouldAdvanceTime) {
+        const shouldRefreshTrack =
+          selectedChanged ||
+          Number.isNaN(lastGroundTrackUpdateTimeRef.current) ||
+          Math.abs(timeValue - lastGroundTrackUpdateTimeRef.current) >= 8
+        if (shouldRefreshTrack) {
+          const selectedObject = objectsRef.current.find((object) => object.id === selectedIdValue)
+          if (selectedObject) {
+            const positions =
+              groundTrackLineRef.current.geometry.attributes.position.array as Float32Array
+            const segments = positions.length / 3 - 1
+            const orbitalPeriodSec = selectedObject.satrec?.no
+              ? ((2 * Math.PI) / selectedObject.satrec.no) * 60
+              : Math.max(60, selectedObject.periodMin * 60)
+            const trackWindowSec = Math.max(1800, orbitalPeriodSec)
+            for (let i = 0; i <= segments; i += 1) {
+              const t = timeValue - trackWindowSec * 0.5 + (trackWindowSec * i) / segments
+              const groundPoint = positionForObject(selectedObject, t)
+              if (!groundPoint) continue
+              groundPoint.normalize().multiplyScalar(1.003)
+              const offset = i * 3
+              positions[offset] = groundPoint.x
+              positions[offset + 1] = groundPoint.y
+              positions[offset + 2] = groundPoint.z
+            }
+            groundTrackLineRef.current.geometry.attributes.position.needsUpdate = true
+            lastGroundTrackUpdateTimeRef.current = timeValue
+          }
+        }
+      }
+
       controlsRef.current.update()
       rendererRef.current.render(sceneRef.current, cameraRef.current)
     }
@@ -670,6 +705,32 @@ const Globe = ({
     trailLineRef.current = trailLine
     sceneRef.current.add(trailLine)
   }, [selectedId])
+
+  useEffect(() => {
+    if (!sceneRef.current) return
+    if (groundTrackLineRef.current) {
+      sceneRef.current.remove(groundTrackLineRef.current)
+      groundTrackLineRef.current.geometry.dispose()
+      ;(groundTrackLineRef.current.material as THREE.Material).dispose()
+      groundTrackLineRef.current = null
+    }
+
+    lastGroundTrackUpdateTimeRef.current = Number.NaN
+    if (!showGroundTrack || !selectedId) return
+
+    const segments = 180
+    const positions = new Float32Array((segments + 1) * 3)
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    const material = new THREE.LineBasicMaterial({
+      color: '#22d3ee',
+      transparent: true,
+      opacity: 0.55,
+    })
+    const line = new THREE.Line(geometry, material)
+    groundTrackLineRef.current = line
+    sceneRef.current.add(line)
+  }, [selectedId, showGroundTrack])
 
   useEffect(() => {
     if (!focusObject || !cameraRef.current || !controlsRef.current) return

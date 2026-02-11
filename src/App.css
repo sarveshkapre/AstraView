@@ -704,6 +704,17 @@ body {
   color: #e2e8f0;
 }
 
+.detail-overlays {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.detail-overlays .hint {
+  margin-top: 0;
+}
+
 .detail-actions {
   display: flex;
   flex-wrap: wrap;

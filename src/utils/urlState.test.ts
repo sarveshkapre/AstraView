@@ -25,6 +25,7 @@ describe('urlState', () => {
     expect(state.filters!.performance).toBe('balanced')
     expect(state.filters!.catalogGroup).toBe('active')
     expect(state.snapshot).toEqual({ mode: 'globe', preset: 'custom', scale: 1, watermark: true })
+    expect(state.overlays).toEqual({ groundTrack: false })
   })
 
   it('enforces payload-only invariants when dataset=payloads', () => {
@@ -53,6 +54,7 @@ describe('urlState', () => {
       view: { camera: [1.23456, 2.34567, 3.45678], target: [0.1, 0.2, 0.3], distance: 4.56789 },
       time: { mode: 'paused', pausedAtSec: 321, speed: 5 },
       snapshot: { mode: 'full', preset: 'social', scale: 2, watermark: false },
+      overlays: { groundTrack: true },
     })
 
     const parsed = parseUrlState()
@@ -68,6 +70,7 @@ describe('urlState', () => {
     expect(parsed.filters!.catalogGroup).toBe('starlink')
     expect(parsed.time).toEqual({ mode: 'paused', pausedAtSec: 321, speed: 5 })
     expect(parsed.snapshot).toEqual({ mode: 'full', preset: 'social', scale: 2, watermark: false })
+    expect(parsed.overlays).toEqual({ groundTrack: true })
     expect(parsed.view).toBeTruthy()
     expect(parsed.view!.distance).toBeCloseTo(4.568, 3)
   })

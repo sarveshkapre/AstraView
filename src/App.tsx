@@ -109,6 +109,7 @@ const App = () => {
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [snapshotMode, setSnapshotMode] = useState<'globe' | 'full'>('globe')
   const [snapshotWatermark, setSnapshotWatermark] = useState(true)
+  const [showGroundTrack, setShowGroundTrack] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [snapshotPreset, setSnapshotPreset] = useState<SnapshotPreset>('custom')
   const [exportScale, setExportScale] = useState<1 | 2>(1)
@@ -165,6 +166,9 @@ const App = () => {
       setSnapshotWatermark(urlState.snapshot.watermark)
       setSnapshotPreset(urlState.snapshot.preset)
       setExportScale(urlState.snapshot.scale)
+    }
+    if (urlState.overlays) {
+      setShowGroundTrack(urlState.overlays.groundTrack)
     }
   }, [])
 
@@ -453,11 +457,15 @@ const App = () => {
         preset: snapshotPreset,
         scale: exportScale,
       },
+      overlays: {
+        groundTrack: showGroundTrack,
+      },
     })
   }, [
     exportScale,
     filters,
     searchTerm,
+    showGroundTrack,
     selected,
     snapshotMode,
     snapshotPreset,
@@ -1519,6 +1527,7 @@ const App = () => {
               focusObject={focusObject}
               initialView={viewState}
               pointSize={densityStep > 2 ? pointSize * 0.8 : densityStep > 1 ? pointSize * 0.9 : pointSize}
+              showGroundTrack={showGroundTrack && Boolean(selected)}
               externalCommand={globeCommand}
               onCommandHandled={() => setGlobeCommand(null)}
               onCanvasReady={handleCanvasReady}
@@ -1676,6 +1685,22 @@ const App = () => {
                 <div className="detail-row">
                   <span>Country</span>
                   <span>{selected.country ?? '—'}</span>
+                </div>
+                <div className="detail-overlays">
+                  <div className="filter-label">Overlays</div>
+                  <div className="chips">
+                    <button
+                      className={`chip ${showGroundTrack ? 'active' : ''}`}
+                      onClick={() => {
+                        recordMeaningfulAction()
+                        setShowGroundTrack((prev) => !prev)
+                      }}
+                      type="button"
+                    >
+                      Ground track
+                    </button>
+                  </div>
+                  <div className="hint">Projected subsatellite path around Earth.</div>
                 </div>
                 <div className="detail-actions">
                   <button onClick={() => setFocusObject(selected)} type="button">

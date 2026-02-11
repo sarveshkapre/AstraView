@@ -58,3 +58,7 @@ export type SnapshotState = {
   scale: 1 | 2
   preset: SnapshotPreset
 }
+
+export type OverlayState = {
+  groundTrack: boolean
+}

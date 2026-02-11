@@ -17,6 +17,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Hover tooltips and click-to-inspect detail panel with orbit path.
 - Watchlist pins: pin/unpin objects for quick re-selection and shareable sets.
 - Orbit trail history and slow Earth rotation for motion context.
+- Ground track overlay toggle for selected objects.
 - Day/night terminator glow and shader-based night lights.
 - Earth day/night textures and normal mapping for surface detail.
 - Cloud layer and atmospheric limb glow for depth.

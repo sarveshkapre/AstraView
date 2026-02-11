@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-02-11
+
+### Added
+- Selected-object ground track overlay with an explicit toggle in the Inspect panel.
+- Ground-track overlay state is now encoded in permalinks and restored on load.
+
+### Fixed
+- CelesTrak OMM/JSON parsing now skips malformed entries and de-duplicates repeated NORAD IDs to keep object IDs stable.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

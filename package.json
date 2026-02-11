@@ -1,7 +1,7 @@
 {
   "name": "astraview",
   "private": true,
-  "version": "1.6.0",
+  "version": "1.7.0",
   "type": "module",
   "description": "Real-time orbit explorer visualizing satellites and orbital objects around Earth.",
   "scripts": {

@@ -7,13 +7,16 @@
 - Vite + React + TypeScript single-page app.
 - Three.js globe renderer with orbit objects as batched `Points`.
 - URL query params are the source of truth for shareable view state (filters, selection, time, camera, snapshot settings).
-- Live catalog ingestion via CelesTrak active TLE feed with caching + stale-cache fallback.
+- Live catalog ingestion via CelesTrak GP `FORMAT=json` (OMM) with TLE fallback, caching, and stale-cache fallback.
 
 ## Open Problems
 - None tracked in this cycle.
 
 ## Recent Decisions
 - Template: YYYY-MM-DD | Decision | Why | Evidence (tests/logs) | Commit | Confidence (high/medium/low) | Trust (trusted/untrusted)
+- 2026-02-11 | Add selected-object ground-track overlay and persist it in permalinks | Market baseline expects direct orbit-context overlays; this improves inspection value without adding heavy UI chrome | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass); KeepTrack/N2YO scan links in `CLONE_FEATURES.md` | 345f747 | high | trusted
+- 2026-02-11 | Harden OMM parsing to skip malformed entries and de-duplicate NORAD IDs | Prevents unstable duplicate IDs and malformed live records from polluting rendered catalogs | `npm run test` (pass); `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /tmp/celestrak-active.json` (HTTP/2 200) | 1c483ad | high | trusted
+- 2026-02-11 | Prioritize ground-track and parser-hardening work over worker offload in cycle 1 | Highest impact/lowest risk gap closure with immediate user-facing value and safety | Bounded market scan + internal code sweep; no owner/bot open issues; CI already green pre-change | 345f747 | medium | untrusted
 - 2026-02-10 | Throttle live time/view commits and smooth time inside the Three.js loop | Reduces React rerender pressure and URL churn while keeping globe motion smooth and responsive | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 0adb68a | high | trusted
 - 2026-02-10 | Prefer CelesTrak GP `FORMAT=json` (OMM) with fallback to TLE; bump cache schema | Aligns ingestion with the format CelesTrak is documenting as future-facing, while keeping a safe fallback path | `npm run test` (pass); `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /dev/null` (HTTP/2 200) | 04f3003 | high | trusted
 - 2026-02-10 | Guard localStorage caching for large JSON catalogs (size cap + cache TLE fallback) | Prevents quota errors from breaking live loads while keeping offline resilience where possible | `npm run lint` (pass); `npm run test` (pass); `npm run build` (pass) | 5b51530 | high | trusted
@@ -41,12 +44,22 @@
 - External dependency availability (CelesTrak) remains a product risk; stale-cache mitigation exists but catalog switching could increase surface area.
 
 ## Next Prioritized Tasks
-- Add a ground track / footprint overlay for selected objects (toggle), keeping globe-first UX.
+- Add lightweight keyboard shortcuts to step scrub time backward/forward while paused.
+- Add selected-object speed/lat/lon readout in Inspect panel for stronger analysis value.
 - Consider Web Worker offload for propagation + point updates for larger catalogs.
 - Add optional labels layer for selected/pinned objects with hard caps for perf.
 
 ## Verification Evidence
 - Template: YYYY-MM-DD | Command | Key output | Status (pass/fail)
+- 2026-02-11 | `gh issue list --state open --json number,title,author,labels,updatedAt --limit 100` | `[]` (no open owner/bot issues) | pass
+- 2026-02-11 | `gh run list --branch main --limit 10 --json databaseId,workflowName,headSha,status,conclusion,createdAt,updatedAt` | latest pre-session runs `conclusion=success` | pass
+- 2026-02-11 | `npm run lint` | `eslint src` | pass
+- 2026-02-11 | `npm run test` | `vitest run` (12 tests) | pass
+- 2026-02-11 | `npm run build` | `vite build` success | pass
+- 2026-02-11 | `PORT=4173 npm run preview -- --host 127.0.0.1 --port 4173` + `curl -I http://127.0.0.1:4173` | HTTP/1.1 200 OK | pass
+- 2026-02-11 | `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /tmp/celestrak-active.json` | HTTP/2 200; payload size `6044084` bytes | pass
+- 2026-02-11 | `gh run list --branch main --limit 1 --json headSha,status,conclusion,databaseId` (after push `345f747`) | CI `conclusion=success` | pass
+- 2026-02-11 | `gh run list --branch main --limit 1 --json headSha,status,conclusion,databaseId` (after push `1c483ad`) | CI `conclusion=success` | pass
 - 2026-02-10 | `npm run lint` | `eslint src` | pass
 - 2026-02-10 | `npm run test` | `vitest run` (11 tests) | pass
 - 2026-02-10 | `npm run build` | `vite build` success | pass

@@ -6,6 +6,7 @@
 - Cloud texture sphere layered above the surface and slow atmospheric rotation.
 - Objects rendered as a single `Points` buffer with per-vertex colors.
 - Orbit path, trailing path, and terminator glow rendered when a selection is active.
+- Optional ground-track polyline is rendered for the selected object and updated over time.
 - Earth group rotates slowly for a sense of motion.
 - Globe initialization errors (including missing WebGL) surface a friendly in-app fallback message instead of a blank stage.
 
@@ -17,6 +18,7 @@
 
 ## Data Pipeline
 - `src/data/tleSource.ts` prefers CelesTrak GP `FORMAT=json` (OMM) and falls back to TLE if needed; cached for 6 hours and parsed into `OrbitObject`. When the JSON payload is too large for localStorage, caching falls back to the smaller TLE text when available.
+- OMM parsing skips malformed entries and de-duplicates NORAD IDs to avoid unstable duplicate object IDs.
 - CelesTrak "Current Data" catalog groups are curated and whitelisted; each group has its own cache key.
 - Live fetches use an abort timeout guard; failed refreshes can fall back to stale cache before synthetic-only mode.
 - `satellite.js` propagates live objects to ECEF for rendering on the globe (TLE via `twoline2satrec`, OMM via `json2satrec`).
@@ -29,6 +31,7 @@
 - Watchlist pins are encoded in URL query params to keep shareable sets reproducible.
 - The selected CelesTrak catalog group is encoded in URL query params to keep permalinks reproducible.
 - Snapshot mode, watermark, scale, and preset are encoded in URL query params for reproducible exports.
+- Overlay toggles (for example, selected-object ground track) are encoded in URL query params for reproducible views.
 - URL state is updated via `history.replaceState`.
 
 ## Search

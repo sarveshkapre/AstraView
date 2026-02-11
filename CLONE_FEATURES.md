@@ -7,14 +7,21 @@
 - Gaps found during codebase exploration
 
 ## Candidate Features To Do
-- [ ] [P2] Catalog import (safe): allow loading a custom TLE URL via a `tle=` URL param, restricted to an allowlist (CelesTrak + user-provided trusted domains). Score: impact 3, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
-- [ ] [P3] Add a ground track overlay layer for selected object (toggle). Score: impact 3, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
-- [ ] [P3] Move TLE propagation and point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
-- [ ] [P3] Add offline app-shell caching (service worker) and texture caching with explicit freshness copy. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
-- [ ] [P3] Add in-app telemetry event hooks (pluggable; local-first) for actions: search, filter, inspect, share, export. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
-- [ ] [P3] Optional labels layer: show object labels for selected/pinned objects, with a hard cap to protect perf. Score: impact 2, effort 3, strategic-fit 3, differentiation 2, risk 3, confidence 3.
+- [ ] [P2] Add lightweight keyboard shortcuts for stepping scrub time backward/forward while paused. Score: impact 3, effort 2, strategic-fit 4, differentiation 2, risk 2, confidence 4.
+- [ ] [P2] Add selected-object speed/lat/lon readout in Inspect panel for stronger inspection value. Score: impact 3, effort 3, strategic-fit 4, differentiation 2, risk 3, confidence 3.
+- [ ] [P2] Add optional object labels for selected + pinned objects with a strict cap for perf safety. Score: impact 2, effort 3, strategic-fit 3, differentiation 2, risk 3, confidence 3.
+- [ ] [P2] Add search-result badges for data source (live/synthetic) and watchlist membership. Score: impact 2, effort 2, strategic-fit 3, differentiation 2, risk 2, confidence 4.
+- [ ] [P2] Add camera-focus animation easing for selection/focus actions (reduced-motion aware). Score: impact 3, effort 3, strategic-fit 3, differentiation 3, risk 3, confidence 3.
+- [ ] [P3] Catalog import (safe): allow `tle=` URL param via allowlisted domains only. Score: impact 3, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
+- [ ] [P3] Move propagation + point-buffer updates off the main thread (Web Worker) for larger catalogs. Score: impact 4, effort 4, strategic-fit 4, differentiation 2, risk 4, confidence 2.
+- [ ] [P3] Add offline app-shell caching (service worker) with explicit freshness copy for cached textures/catalog metadata. Score: impact 3, effort 4, strategic-fit 3, differentiation 1, risk 3, confidence 2.
+- [ ] [P3] Add pluggable local-first telemetry hooks for search/filter/inspect/share/export actions. Score: impact 3, effort 2, strategic-fit 4, differentiation 1, risk 2, confidence 4.
+- [ ] [P3] Add an optional ground footprint cone for selected object at high zoom only. Score: impact 2, effort 4, strategic-fit 3, differentiation 3, risk 3, confidence 2.
 
 ## Implemented
+- [x] [2026-02-11] Ground track overlay: selected-object projected subsatellite path toggle in Inspect panel, rendered on the globe and updated over time. Evidence: `src/App.tsx`, `src/components/Globe.tsx`, `src/App.css`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
+- [x] [2026-02-11] Permalink coverage: overlay toggle (`ground track`) encoded/restored via URL state with regression tests. Evidence: `src/utils/urlState.ts`, `src/utils/urlState.test.ts`, `src/types.ts`, `src/App.tsx`, `npm run test` (pass).
+- [x] [2026-02-11] Live-data hardening: OMM parser now skips malformed entries and de-duplicates repeated NORAD IDs to avoid unstable duplicate objects. Evidence: `src/data/tleSource.ts`, `src/data/tleSource.test.ts`, `curl -sS -D - 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=json' -o /tmp/celestrak-active.json` (HTTP 200), `npm run test` (pass).
 - [x] [2026-02-10] Perf: reduce React render load in live mode by throttling time state commits; smooth time inside Three.js loop; throttle OrbitControls view commits to avoid URL spam. Evidence: `src/App.tsx`, `src/components/Globe.tsx`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
 - [x] [2026-02-10] Data pipeline: prefer CelesTrak GP `FORMAT=json` (OMM) ingestion (with `satellite.js json2satrec`) and automatic fallback to TLE; bump cache schema to v2; add parser unit test. Evidence: `src/data/tleSource.ts`, `src/data/tleSource.test.ts`, `src/App.tsx`, `npm run test` (pass).
 - [x] [2026-02-10] Search relevance: tokenized multi-keyword matching, match-field indicator in results, and score-based ordering. Evidence: `src/utils/search.ts`, `src/utils/search.test.ts`, `src/App.tsx`, `npm run lint` (pass), `npm run test` (pass), `npm run build` (pass).
@@ -42,8 +49,14 @@
 ## Insights
 - URL state parsing must always default to explicit full sets for multi-select filters to keep UI chip state and filtering logic aligned.
 - For external data dependencies, stale-cache fallback gives a better user experience than jumping straight to synthetic demo mode.
+- Real CelesTrak `FORMAT=json` payloads for `GROUP=active` currently exceed 6 MB, so strict malformed-entry filtering and dedupe guards are required to keep runtime object sets stable.
 - Keeping lint focused on the active product surface avoids false-negative CI noise in mixed-purpose repositories.
-- Bounded market scan (untrusted, web): orbit explorers commonly emphasize fast search + selection, time controls, catalog switching, ground track/footprint/orbit overlays, and explicit “WebGL required” fallback messaging. CelesTrak documents OMM/JSON as the preferred future-facing format (supports 9-digit catalog numbers), which suggests clients should not assume TLE will remain sufficient long-term. Sources: [KeepTrack find a satellite](https://docs.keeptrack.space/basic-tut/find-a-satellite/), [N2YO UI cues](https://www.n2yo.com/), [CelesTrak GP data formats](https://celestrak.org/NORAD/documentation/gp-data-formats.php), [get.webgl.org](https://get.webgl.org/).
+- Bounded market scan (untrusted, web) gap map:
+  Missing -> selected-object speed/lat/lon inspector values and paused-time keyboard stepping.
+  Weak -> richer orbit analysis overlays (for example footprint cone) compared with advanced trackers.
+  Parity -> fast search/selection, catalog switching, orbit/ground-track context, and WebGL fallback messaging.
+  Differentiator opportunity -> trust-first freshness + fallback transparency with reproducible permalinks and minimal chrome.
+  Sources: [KeepTrack interface guide](https://docs.keeptrack.space/interface/), [KeepTrack plugin list](https://docs.keeptrack.space/basic-tut/feature-list/), [N2YO controls](https://www.n2yo.com/satellites/?c=3), [CelesTrak GP formats](https://celestrak.org/NORAD/documentation/gp-data-formats.php).
 
 ## Notes
 - This file is maintained by the autonomous clone loop.

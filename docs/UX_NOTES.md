@@ -12,6 +12,7 @@
 - Search dropdown supports keyboard navigation (up/down/enter) and closes on escape/outside click.
 - Power search supports pasting comma/newline-separated NORAD ID lists.
 - Hover = tooltip, click = selection + orbit path.
+- Selection panel includes a ground track toggle for projected subsatellite path context.
 - Watchlist pins let users pin/unpin objects and quickly re-select from a compact list.
 - On small screens, Filters/Trust and Inspect/Share panels live in a compact drawer so the globe stays primary.
 - Loading overlay appears briefly on startup to confirm activity.
@@ -42,6 +43,7 @@
 - Preset hint text clarifies export behaviors.
 - Share link toast now includes current snapshot preset and scale.
 - Permalink state now restores snapshot preset, scale, watermark, and mode.
+- Permalink state now restores selected overlay toggles (including ground track).
 - Reset snapshot button restores default export settings.
 - Shortcut dialog closes on backdrop click and ignores unrelated shortcuts while open.
 

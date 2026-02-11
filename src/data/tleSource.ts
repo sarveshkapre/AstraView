@@ -122,10 +122,23 @@ export const parseCelestrakJsonText = (jsonText: string): OrbitObject[] => {
   const entries = Array.isArray(parsed) ? (parsed as OMMJsonObject[]) : parsed ? [parsed as OMMJsonObject] : []
 
   const objects: OrbitObject[] = []
+  const seenNorad = new Set<number>()
   for (const entry of entries) {
-    const name = entry.OBJECT_NAME ?? 'Unknown'
-    const satrec = satellite.json2satrec(entry)
-    const noradId = Number(entry.NORAD_CAT_ID ?? satrec.satnum)
+    let satrec: satellite.SatRec
+    try {
+      satrec = satellite.json2satrec(entry)
+    } catch {
+      continue
+    }
+    if (typeof satrec.error === 'number' && satrec.error !== 0) continue
+    const noradIdRaw = Number(entry.NORAD_CAT_ID ?? satrec.satnum)
+    if (!Number.isFinite(noradIdRaw) || noradIdRaw <= 0) continue
+    const noradId = Math.trunc(noradIdRaw)
+    if (seenNorad.has(noradId)) continue
+    if (!Number.isFinite(satrec.no) || satrec.no <= 0) continue
+    if (![satrec.inclo, satrec.nodeo, satrec.mo].every((value) => Number.isFinite(value))) continue
+
+    const name = (entry.OBJECT_NAME ?? '').trim() || `NORAD ${noradId}`
     const altitudeKm = Math.max(0, Math.round(estimateAltitudeKm(satrec)))
     const periodMin = satrec.no ? (2 * Math.PI) / satrec.no : 0
     const regime = regimeFromAltitude(altitudeKm)
@@ -147,6 +160,7 @@ export const parseCelestrakJsonText = (jsonText: string): OrbitObject[] => {
       source: 'tle',
       satrec,
     })
+    seenNorad.add(noradId)
   }
 
   return objects

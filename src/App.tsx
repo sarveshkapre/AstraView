@@ -103,6 +103,7 @@ const App = () => {
   const [focusObject, setFocusObject] = useState<OrbitObject | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(() => new Date())
+  const [lastNetworkLatencyMs, setLastNetworkLatencyMs] = useState<number | null>(null)
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
@@ -302,6 +303,7 @@ const App = () => {
         setInvalidTleCount(invalidCount)
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
+        setLastNetworkLatencyMs(result.latencyMs ?? null)
         setTleSourceMode(result.source)
         setCatalogFormatMode(result.format)
         setTleGroupLoaded(result.group)
@@ -314,6 +316,7 @@ const App = () => {
         setTleStatus('error')
         setTleSourceMode('fallback')
         setCatalogFormatMode('none')
+        setLastNetworkLatencyMs(null)
         setTleMessage('Live catalog unavailable. Using cached or demo data.')
       }
     }
@@ -341,6 +344,7 @@ const App = () => {
         setInvalidTleCount(invalidCount)
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
+        setLastNetworkLatencyMs(result.latencyMs ?? null)
         setTleSourceMode(result.source)
         setCatalogFormatMode(result.format)
         setTleGroupLoaded(result.group)
@@ -664,6 +668,10 @@ const App = () => {
             : tleSourceMode === 'stale-cache'
               ? 'Stale cache loaded after live fetch failure.'
               : 'Demo catalog ready.'
+  const networkLatencyLabel =
+    lastNetworkLatencyMs !== null && lastNetworkLatencyMs >= 0
+      ? `Fetch latency: ${Math.round(lastNetworkLatencyMs)}ms.`
+      : ''
   const healthLabel =
     tleStatus === 'loading'
       ? 'Loading live'
@@ -1174,6 +1182,7 @@ const App = () => {
       setInvalidTleCount(invalidCount)
       setTleObjects(result.objects)
       setLastUpdated(result.fetchedAt)
+      setLastNetworkLatencyMs(result.latencyMs ?? null)
       setTleSourceMode(result.source)
       setCatalogFormatMode(result.format)
       setTleGroupLoaded(result.group)
@@ -1192,6 +1201,7 @@ const App = () => {
       setTleStatus('error')
       setTleSourceMode('fallback')
       setCatalogFormatMode('none')
+      setLastNetworkLatencyMs(null)
       setTleMessage('Refresh failed. Using cached or demo data.')
       showToast('Refresh failed. Using cached data.')
     }
@@ -1657,6 +1667,7 @@ const App = () => {
                 {isOnline ? 'Online.' : 'Offline mode. Using cached dataset.'} {dataStatusLabel}
                 Last refreshed: {lastUpdatedLabel}
                 {hasFreshness ? ` · Age: ${formatAge(dataAgeSec)}.` : '.'}
+                {networkLatencyLabel ? ` ${networkLatencyLabel}` : ''}
               </p>
             </div>
             <div className="trust-item">

@@ -26,6 +26,7 @@
 - Manual refresh bypasses cache and updates the dataset immediately.
 - Cache can be cleared per selected CelesTrak group to force a fresh fetch on next reload.
 - Optional interval auto-refresh (off/5/15 min) revalidates the selected catalog while the tab is visible.
+- Network-backed loads capture fetch latency and surface it in trust metadata.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
 - Invalid catalog entries are skipped during propagation and reported in the trust panel.
 - Trust metadata also shows the active element format (`OMM JSON` vs `TLE`) for quick fidelity checks.

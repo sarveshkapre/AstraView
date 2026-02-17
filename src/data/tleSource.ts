@@ -226,6 +226,7 @@ export type TleLoadResult = {
   group: TleCatalogGroup
   groupLabel: string
   format: CatalogFormat
+  latencyMs?: number
 }
 
 export const loadTleObjects = async (
@@ -260,6 +261,7 @@ export const loadTleObjects = async (
   }
 
   try {
+    const startedAt = Date.now()
     let format: CatalogFormat = 'json'
     let data = await fetchCatalogText(group, 'json')
     try {
@@ -291,6 +293,7 @@ export const loadTleObjects = async (
       group,
       groupLabel: labelForGroup(group),
       format,
+      latencyMs: Date.now() - startedAt,
     }
   } catch {
     if (cached) {
@@ -309,6 +312,7 @@ export const loadTleObjects = async (
 
 export const refreshTleObjects = async (group: TleCatalogGroup): Promise<TleLoadResult> => {
   try {
+    const startedAt = Date.now()
     let format: CatalogFormat = 'json'
     let data = await fetchCatalogText(group, 'json')
     try {
@@ -337,6 +341,7 @@ export const refreshTleObjects = async (group: TleCatalogGroup): Promise<TleLoad
       group,
       groupLabel: labelForGroup(group),
       format,
+      latencyMs: Date.now() - startedAt,
     }
   } catch {
     const cached = readCache(group)

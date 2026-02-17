@@ -25,6 +25,7 @@
 - Manual refresh bypasses cache and updates the dataset immediately.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
 - Invalid catalog entries are skipped during propagation and reported in the trust panel.
+- Trust metadata also shows the active element format (`OMM JSON` vs `TLE`) for quick fidelity checks.
 
 ## State & URL
 - Filters, search, time mode, selection, and camera encoded in URL query params.

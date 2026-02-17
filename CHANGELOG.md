@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - CelesTrak OMM/JSON parsing now skips malformed entries and de-duplicates repeated NORAD IDs to keep object IDs stable.
 
+## [1.8.0] - 2026-02-17
+
+### Added
+- Trust panel now displays active catalog element format (`OMM JSON` or `TLE`) alongside source status.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

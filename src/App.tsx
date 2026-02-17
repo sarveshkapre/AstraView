@@ -46,6 +46,7 @@ const defaultFilters = (): FiltersState => ({
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
 type TleSourceMode = 'network' | 'cache' | 'stale-cache' | 'fallback'
+type CatalogFormatMode = 'json' | 'tle' | 'none'
 
 const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
   all: 'All cataloged objects',
@@ -81,6 +82,7 @@ const App = () => {
   const [tleObjects, setTleObjects] = useState<OrbitObject[]>([])
   const [tleStatus, setTleStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [tleSourceMode, setTleSourceMode] = useState<TleSourceMode>('fallback')
+  const [catalogFormatMode, setCatalogFormatMode] = useState<CatalogFormatMode>('none')
   const [tleMessage, setTleMessage] = useState<string | null>(null)
   const [invalidTleCount, setInvalidTleCount] = useState(0)
   const [tleGroupLoaded, setTleGroupLoaded] = useState<TleCatalogGroup>('active')
@@ -253,6 +255,7 @@ const App = () => {
         setTleObjects(result.objects)
         setLastUpdated(result.fetchedAt)
         setTleSourceMode(result.source)
+        setCatalogFormatMode(result.format)
         setTleGroupLoaded(result.group)
         setTleStatus('ready')
         if (result.source === 'stale-cache') {
@@ -262,6 +265,7 @@ const App = () => {
         if (cancelled) return
         setTleStatus('error')
         setTleSourceMode('fallback')
+        setCatalogFormatMode('none')
         setTleMessage('Live catalog unavailable. Using cached or demo data.')
       }
     }
@@ -550,6 +554,12 @@ const App = () => {
         ? `${sourcePrefix}${tleStatus === 'loading' ? ' (updating...)' : ''}`
         : `${sourcePrefix} + synthetic non-payloads${tleStatus === 'loading' ? ' (updating...)' : ''}`
       : 'Synthetic demo catalog'
+  const catalogFormatLabel =
+    catalogFormatMode === 'json'
+      ? 'Format: OMM JSON'
+      : catalogFormatMode === 'tle'
+        ? 'Format: TLE'
+        : 'Format: Synthetic'
   const dataStatusLabel =
     tleStatus === 'loading'
       ? 'Fetching live catalog...'
@@ -1045,6 +1055,7 @@ const App = () => {
       setTleObjects(result.objects)
       setLastUpdated(result.fetchedAt)
       setTleSourceMode(result.source)
+      setCatalogFormatMode(result.format)
       setTleGroupLoaded(result.group)
       setTleStatus('ready')
       if (result.source === 'stale-cache') {
@@ -1060,6 +1071,7 @@ const App = () => {
     } catch {
       setTleStatus('error')
       setTleSourceMode('fallback')
+      setCatalogFormatMode('none')
       setTleMessage('Refresh failed. Using cached or demo data.')
       showToast('Refresh failed. Using cached data.')
     }
@@ -1438,6 +1450,7 @@ const App = () => {
             <div className="trust-item">
               <strong>Data Source</strong>
               <p>{dataSourceLabel}</p>
+              <p>{catalogFormatLabel}</p>
               <div className="trust-actions">
                 <label className="trust-row" htmlFor="catalog-group">
                   <span>Catalog</span>

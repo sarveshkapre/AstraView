@@ -51,6 +51,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Trust freshness metadata now includes last network fetch latency.
 
+## [1.8.8] - 2026-02-17
+
+### Added
+- Data coverage now reports filtered altitude spread (min/median/max) for quick regime context.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

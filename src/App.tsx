@@ -46,6 +46,7 @@ const defaultFilters = (): FiltersState => ({
 })
 
 const formatNumber = (value: number) => value.toLocaleString('en-US')
+const formatKm = (value: number) => `${formatNumber(Math.round(value))} km`
 type TleSourceMode = 'network' | 'cache' | 'stale-cache' | 'fallback'
 type CatalogFormatMode = 'json' | 'tle' | 'none'
 
@@ -691,6 +692,15 @@ const App = () => {
     const invalidTle = tleStatus === 'ready' ? invalidTleCount : 0
     return { livePayloads, syntheticObjects, payloads, nonPayloads, invalidTle }
   }, [baseObjects, invalidTleCount, tleStatus])
+
+  const altitudeStats = useMemo(() => {
+    if (filteredObjects.length === 0) return null
+    const sorted = filteredObjects.map((object) => object.altitudeKm).sort((a, b) => a - b)
+    const min = sorted[0]
+    const max = sorted[sorted.length - 1]
+    const median = sorted[Math.floor(sorted.length / 2)]
+    return { min, median, max }
+  }, [filteredObjects])
 
   const exportEstimate = useMemo(() => {
     let width = 0
@@ -1680,6 +1690,12 @@ const App = () => {
                 Payloads: {formatNumber(coverage.payloads)} · Non-payloads:{' '}
                 {formatNumber(coverage.nonPayloads)}
               </p>
+              {altitudeStats && (
+                <p>
+                  Altitude spread (filtered): {formatKm(altitudeStats.min)} · median{' '}
+                  {formatKm(altitudeStats.median)} · max {formatKm(altitudeStats.max)}
+                </p>
+              )}
               {coverage.invalidTle > 0 && (
                 <p className="trust-note">
                   {formatNumber(coverage.invalidTle)} catalog entries skipped due to propagation

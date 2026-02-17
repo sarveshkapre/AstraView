@@ -28,6 +28,7 @@
 - Optional interval auto-refresh (off/5/15 min) revalidates the selected catalog while the tab is visible.
 - Network-backed loads capture fetch latency and surface it in trust metadata.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
+- Coverage now includes filtered altitude spread stats (min/median/max) for quick context on selected slices.
 - Invalid catalog entries are skipped during propagation and reported in the trust panel.
 - Trust metadata also shows the active element format (`OMM JSON` vs `TLE`) for quick fidelity checks.
 

@@ -22,7 +22,7 @@ AstraView delivers instant orbital context via an interactive globe, live-motion
 - Earth day/night textures and normal mapping for surface detail.
 - Cloud layer and atmospheric limb glow for depth.
 - Live CelesTrak catalog ingestion (prefers OMM/JSON with TLE fallback) with timeout handling, caching, and stale-cache fallback.
-- Safe catalog-group selector for CelesTrak live catalogs (active/stations/starlink/oneweb/gps/iridium), persisted in permalinks.
+- Safe catalog-group selector for CelesTrak live catalogs (active/stations/starlink/oneweb/gps/iridium/qianfan/kuiper/weather), persisted in permalinks.
 - Manual refresh control for the live catalog.
 - Data coverage stats for live vs synthetic objects.
 - Live/cache/fallback health badge in the header.
@@ -61,6 +61,7 @@ Context and product documentation lives in `docs/`:
 - `docs/PRODUCT_BRIEF.md`
 - `docs/UX_NOTES.md`
 - `docs/TECHNICAL_NOTES.md`
+- `docs/WORLD_STATE.md`
 
 ## Changelog
 

@@ -56,6 +56,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Data coverage now reports filtered altitude spread (min/median/max) for quick regime context.
 
+## [1.8.9] - 2026-02-17
+
+### Added
+- Added `docs/WORLD_STATE.md` with a dated live-catalog snapshot and roadmap implications.
+
+### Changed
+- URL state tests now cover new compact catalog keys and auto-refresh permalink parsing.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

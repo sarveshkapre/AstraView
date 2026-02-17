@@ -55,6 +55,7 @@ describe('urlState', () => {
       time: { mode: 'paused', pausedAtSec: 321, speed: 5 },
       snapshot: { mode: 'full', preset: 'social', scale: 2, watermark: false },
       overlays: { groundTrack: true },
+      refreshMinutes: 15,
     })
 
     const parsed = parseUrlState()
@@ -71,7 +72,22 @@ describe('urlState', () => {
     expect(parsed.time).toEqual({ mode: 'paused', pausedAtSec: 321, speed: 5 })
     expect(parsed.snapshot).toEqual({ mode: 'full', preset: 'social', scale: 2, watermark: false })
     expect(parsed.overlays).toEqual({ groundTrack: true })
+    expect(parsed.refreshMinutes).toBe(15)
     expect(parsed.view).toBeTruthy()
     expect(parsed.view!.distance).toBeCloseTo(4.568, 3)
+  })
+
+  it('parses new compact catalog keys and refresh interval', () => {
+    setSearch('?cg=qf&rf=5')
+    const state = parseUrlState()
+    expect(state.filters!.catalogGroup).toBe('qianfan')
+    expect(state.refreshMinutes).toBe(5)
+  })
+
+  it('supports legacy full catalog names in permalinks', () => {
+    setSearch('?cg=kuiper&rf=99')
+    const state = parseUrlState()
+    expect(state.filters!.catalogGroup).toBe('kuiper')
+    expect(state.refreshMinutes).toBe(0)
   })
 })

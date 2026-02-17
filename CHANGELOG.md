@@ -31,6 +31,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - New CelesTrak group options: Qianfan, Kuiper, and Weather.
 
+## [1.8.4] - 2026-02-17
+
+### Added
+- Local persistence fallback for snapshot export preferences when no snapshot params are in the URL.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

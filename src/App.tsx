@@ -57,6 +57,7 @@ const DATASET_LABELS: Record<FiltersState['dataset'], string> = {
 const WATCHLIST_LIMIT = 20
 const TIME_COMMIT_INTERVAL_MS = 90
 const VIEW_COMMIT_INTERVAL_MS = 120
+const SNAPSHOT_PREFS_KEY = 'astraview.snapshotPrefs.v1'
 
 const formatAge = (seconds: number) => {
   if (seconds < 60) return `${seconds}s`
@@ -170,6 +171,31 @@ const App = () => {
       setSnapshotWatermark(urlState.snapshot.watermark)
       setSnapshotPreset(urlState.snapshot.preset)
       setExportScale(urlState.snapshot.scale)
+    } else if (typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(SNAPSHOT_PREFS_KEY)
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<{
+            mode: 'globe' | 'full'
+            watermark: boolean
+            preset: SnapshotPreset
+            scale: 1 | 2
+          }>
+          if (parsed.mode === 'globe' || parsed.mode === 'full') setSnapshotMode(parsed.mode)
+          if (typeof parsed.watermark === 'boolean') setSnapshotWatermark(parsed.watermark)
+          if (
+            parsed.preset === 'custom' ||
+            parsed.preset === 'presentation' ||
+            parsed.preset === 'social' ||
+            parsed.preset === 'report'
+          ) {
+            setSnapshotPreset(parsed.preset)
+          }
+          if (parsed.scale === 1 || parsed.scale === 2) setExportScale(parsed.scale)
+        }
+      } catch {
+        // Ignore malformed local preferences and keep URL/default state.
+      }
     }
     if (urlState.overlays) {
       setShowGroundTrack(urlState.overlays.groundTrack)
@@ -178,6 +204,23 @@ const App = () => {
       setRefreshIntervalMin(urlState.refreshMinutes)
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof localStorage === 'undefined') return
+    try {
+      localStorage.setItem(
+        SNAPSHOT_PREFS_KEY,
+        JSON.stringify({
+          mode: snapshotMode,
+          watermark: snapshotWatermark,
+          preset: snapshotPreset,
+          scale: exportScale,
+        }),
+      )
+    } catch {
+      // Ignore storage write failures (private mode/quota).
+    }
+  }, [exportScale, snapshotMode, snapshotPreset, snapshotWatermark])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsLoading(false), 700)

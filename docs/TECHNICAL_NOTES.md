@@ -35,6 +35,7 @@
 - Watchlist pins are encoded in URL query params to keep shareable sets reproducible.
 - The selected CelesTrak catalog group is encoded in URL query params to keep permalinks reproducible.
 - Snapshot mode, watermark, scale, and preset are encoded in URL query params for reproducible exports.
+- Snapshot export preferences are also persisted locally for non-permalink sessions.
 - Overlay toggles (for example, selected-object ground track) are encoded in URL query params for reproducible views.
 - URL state is updated via `history.replaceState`.
 

@@ -684,6 +684,20 @@ const App = () => {
     return { livePayloads, syntheticObjects, payloads, nonPayloads, invalidTle }
   }, [baseObjects, invalidTleCount, tleStatus])
 
+  const exportEstimate = useMemo(() => {
+    let width = 0
+    let height = 0
+    if (snapshotMode === 'globe') {
+      width = Math.round((globeCanvas?.width ?? 0) * exportScale)
+      height = Math.round((globeCanvas?.height ?? 0) * exportScale)
+    } else if (typeof window !== 'undefined') {
+      width = Math.round(window.innerWidth * exportScale)
+      height = Math.round(window.innerHeight * exportScale)
+    }
+    const megapixels = width > 0 && height > 0 ? (width * height) / 1_000_000 : 0
+    return { width, height, megapixels }
+  }, [exportScale, globeCanvas, snapshotMode])
+
   const recordInspection = useCallback((object: OrbitObject) => {
     if (inspectedIdsRef.current.has(object.id)) return
     inspectedIdsRef.current.add(object.id)
@@ -1997,6 +2011,11 @@ const App = () => {
               </div>
               <div className="preset-hint">
                 Presentation: globe + watermark · Social: full UI + watermark · Report: globe only
+              </div>
+              <div className="export-estimate">
+                Estimated output: {exportEstimate.width > 0 ? `${exportEstimate.width}x${exportEstimate.height}` : '—'}
+                {exportEstimate.megapixels > 0 ? ` (${exportEstimate.megapixels.toFixed(1)} MP)` : ''}
+                {exportEstimate.megapixels >= 8 ? ' · high memory capture' : ''}
               </div>
               <div className="preset-row">
                 <label htmlFor="snapshot-scale">Scale</label>

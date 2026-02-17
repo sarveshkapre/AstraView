@@ -47,6 +47,7 @@
 - Reset snapshot button restores default export settings.
 - Shortcut dialog closes on backdrop click and ignores unrelated shortcuts while open.
 - Keyboard shortcuts include `E` for export PNG and `C` for copy PNG.
+- Snapshot panel shows estimated output size and warns on high-memory captures.
 
 ## Accessibility & Clarity
 - Keyboard focus styles on inputs and buttons.

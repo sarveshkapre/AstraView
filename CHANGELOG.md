@@ -41,6 +41,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Keyboard shortcuts for snapshot export (`E`) and copy (`C`).
 
+## [1.8.6] - 2026-02-17
+
+### Added
+- Snapshot panel output-size estimate with high-memory warning.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

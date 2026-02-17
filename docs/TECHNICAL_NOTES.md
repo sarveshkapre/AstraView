@@ -23,6 +23,7 @@
 - Live fetches use an abort timeout guard; failed refreshes can fall back to stale cache before synthetic-only mode.
 - `satellite.js` propagates live objects to ECEF for rendering on the globe (TLE via `twoline2satrec`, OMM via `json2satrec`).
 - Manual refresh bypasses cache and updates the dataset immediately.
+- Cache can be cleared per selected CelesTrak group to force a fresh fetch on next reload.
 - Data coverage metrics are derived from `source` and `type` on the merged dataset.
 - Invalid catalog entries are skipped during propagation and reported in the trust panel.
 - Trust metadata also shows the active element format (`OMM JSON` vs `TLE`) for quick fidelity checks.

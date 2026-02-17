@@ -350,3 +350,23 @@ export const refreshTleObjects = async (group: TleCatalogGroup): Promise<TleLoad
     throw new Error('Catalog refresh failed and no cache was available')
   }
 }
+
+export const clearTleCache = (group?: TleCatalogGroup) => {
+  if (typeof localStorage === 'undefined') return 0
+  if (group) {
+    const key = cacheKeyForGroup(group)
+    if (localStorage.getItem(key) === null) return 0
+    localStorage.removeItem(key)
+    return 1
+  }
+
+  let removed = 0
+  for (const entry of TLE_CATALOG_GROUPS) {
+    const key = cacheKeyForGroup(entry.key)
+    if (localStorage.getItem(key) !== null) {
+      localStorage.removeItem(key)
+      removed += 1
+    }
+  }
+  return removed
+}

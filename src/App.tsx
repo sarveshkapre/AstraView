@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { generateObjects } from './data/orbitalObjects'
-import { loadTleObjects, refreshTleObjects, TLE_CATALOG_GROUPS } from './data/tleSource'
+import { clearTleCache, loadTleObjects, refreshTleObjects, TLE_CATALOG_GROUPS } from './data/tleSource'
 import type {
   OrbitObject,
   FiltersState,
@@ -1077,6 +1077,17 @@ const App = () => {
     }
   }
 
+  const handleClearCatalogCache = () => {
+    recordMeaningfulAction()
+    const removed = clearTleCache(filters.catalogGroup)
+    if (removed > 0) {
+      showToast('Catalog cache cleared for selected group.')
+      setTleMessage('Cache cleared. Refresh to fetch fresh live data.')
+    } else {
+      showToast('No cache found for selected group.')
+    }
+  }
+
   return (
     <div
       className={`app ${isCompact ? 'compact' : ''} ${
@@ -1482,6 +1493,14 @@ const App = () => {
                   disabled={!isOnline || tleStatus === 'loading'}
                 >
                   {tleStatus === 'loading' ? 'Refreshing...' : 'Refresh live data'}
+                </button>
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={handleClearCatalogCache}
+                  disabled={tleStatus === 'loading'}
+                >
+                  Clear cache
                 </button>
               </div>
               {tleMessage && <div className="trust-note">{tleMessage}</div>}

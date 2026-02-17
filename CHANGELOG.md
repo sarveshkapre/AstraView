@@ -16,6 +16,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Trust panel now displays active catalog element format (`OMM JSON` or `TLE`) alongside source status.
 
+## [1.8.1] - 2026-02-17
+
+### Added
+- Trust panel action to clear per-group catalog cache and force a fresh next fetch.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

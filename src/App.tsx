@@ -1111,10 +1111,24 @@ const App = () => {
         event.preventDefault()
         searchInputRef.current?.focus()
       }
+      if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'e') {
+        handleExport()
+      }
+      if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.toLowerCase() === 'c') {
+        handleCopySnapshot()
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [handleFocusEarth, handlePausePlay, handleResetView, mobileDrawer, showShortcuts])
+  }, [
+    handleCopySnapshot,
+    handleExport,
+    handleFocusEarth,
+    handlePausePlay,
+    handleResetView,
+    mobileDrawer,
+    showShortcuts,
+  ])
 
   useEffect(() => {
     if (!showShortcuts) return
@@ -1231,6 +1245,14 @@ const App = () => {
               <div className="shortcut-item">
                 <span>Search</span>
                 <span className="shortcut-key">/</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Export PNG</span>
+                <span className="shortcut-key">E</span>
+              </div>
+              <div className="shortcut-item">
+                <span>Copy PNG</span>
+                <span className="shortcut-key">C</span>
               </div>
             </div>
           </div>

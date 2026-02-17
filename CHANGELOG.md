@@ -26,6 +26,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Configurable catalog auto-refresh interval (off/5/15 min), persisted in permalinks.
 
+## [1.8.3] - 2026-02-17
+
+### Added
+- New CelesTrak group options: Qianfan, Kuiper, and Weather.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

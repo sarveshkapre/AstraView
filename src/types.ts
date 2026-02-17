@@ -6,7 +6,16 @@ export type AltitudeBand = 'All' | '<500km' | '500-1200km' | '1200-20000km' | '2
 
 // Safe, curated subset of CelesTrak "Current Data" GROUPs used by AstraView.
 // Keep this list small and stable; new groups can be added without breaking old permalinks.
-export type TleCatalogGroup = 'active' | 'stations' | 'starlink' | 'oneweb' | 'gps-ops' | 'iridium'
+export type TleCatalogGroup =
+  | 'active'
+  | 'stations'
+  | 'starlink'
+  | 'oneweb'
+  | 'gps-ops'
+  | 'iridium'
+  | 'qianfan'
+  | 'kuiper'
+  | 'weather'
 
 export type OrbitObject = {
   id: string

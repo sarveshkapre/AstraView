@@ -29,6 +29,9 @@ const CATALOG_GROUP_KEYS: Record<TleCatalogGroup, string> = {
   oneweb: 'ow',
   'gps-ops': 'g',
   iridium: 'ir',
+  qianfan: 'qf',
+  kuiper: 'kp',
+  weather: 'wx',
 }
 const CATALOG_GROUP_FROM_KEY = new Map(
   Object.entries(CATALOG_GROUP_KEYS).map(([group, key]) => [key, group as TleCatalogGroup]),

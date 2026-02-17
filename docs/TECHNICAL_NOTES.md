@@ -20,6 +20,7 @@
 - `src/data/tleSource.ts` prefers CelesTrak GP `FORMAT=json` (OMM) and falls back to TLE if needed; cached for 6 hours and parsed into `OrbitObject`. When the JSON payload is too large for localStorage, caching falls back to the smaller TLE text when available.
 - OMM parsing skips malformed entries and de-duplicates NORAD IDs to avoid unstable duplicate object IDs.
 - CelesTrak "Current Data" catalog groups are curated and whitelisted; each group has its own cache key.
+- Curated groups now include Active/Stations/Starlink/OneWeb/GPS/Iridium plus newer public groups (Qianfan, Kuiper, Weather).
 - Live fetches use an abort timeout guard; failed refreshes can fall back to stale cache before synthetic-only mode.
 - `satellite.js` propagates live objects to ECEF for rendering on the globe (TLE via `twoline2satrec`, OMM via `json2satrec`).
 - Manual refresh bypasses cache and updates the dataset immediately.

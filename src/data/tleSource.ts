@@ -16,6 +16,9 @@ export const TLE_CATALOG_GROUPS: { key: TleCatalogGroup; label: string; groupPar
   { key: 'oneweb', label: 'OneWeb', groupParam: 'ONEWEB' },
   { key: 'gps-ops', label: 'GPS (Ops)', groupParam: 'GPS-OPS' },
   { key: 'iridium', label: 'Iridium', groupParam: 'IRIDIUM' },
+  { key: 'qianfan', label: 'Qianfan', groupParam: 'QIANFAN' },
+  { key: 'kuiper', label: 'Kuiper', groupParam: 'KUIPER' },
+  { key: 'weather', label: 'Weather', groupParam: 'WEATHER' },
 ]
 
 const GROUP_PARAM_BY_KEY = new Map(TLE_CATALOG_GROUPS.map((entry) => [entry.key, entry.groupParam]))

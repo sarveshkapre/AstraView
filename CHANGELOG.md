@@ -64,6 +64,15 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - URL state tests now cover new compact catalog keys and auto-refresh permalink parsing.
 
+## [1.8.10] - 2026-02-17
+
+### Added
+- Added `docs/SELF_HOSTED_RUNNER.md` with prerequisites and repository runner registration steps.
+- Added `scripts/ci_self_hosted_smoke.sh` to validate full CI commands on a self-hosted host.
+
+### Changed
+- GitHub Actions CI workflow now runs on `self-hosted` and includes runner diagnostics.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added

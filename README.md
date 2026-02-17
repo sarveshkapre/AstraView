@@ -62,6 +62,7 @@ Context and product documentation lives in `docs/`:
 - `docs/UX_NOTES.md`
 - `docs/TECHNICAL_NOTES.md`
 - `docs/WORLD_STATE.md`
+- `docs/SELF_HOSTED_RUNNER.md`
 
 ## Changelog
 

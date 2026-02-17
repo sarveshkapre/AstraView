@@ -8,6 +8,7 @@ import type {
   SnapshotPreset,
   TleCatalogGroup,
   OverlayState,
+  RefreshIntervalMinutes,
 } from '../types'
 import { ALTITUDE_BANDS, ALL_REGIMES, ALL_TYPES, PERFORMANCE_MODES } from '../constants/filters'
 
@@ -57,6 +58,7 @@ export type UrlState = {
   time?: TimeState
   snapshot?: SnapshotState
   overlays?: OverlayState
+  refreshMinutes?: RefreshIntervalMinutes
 }
 
 export const parseUrlState = (): UrlState => {
@@ -138,6 +140,8 @@ export const parseUrlState = (): UrlState => {
   const overlays: OverlayState = {
     groundTrack: params.get('gt') === '1',
   }
+  const refreshParam = Number(params.get('rf'))
+  const refreshMinutes: RefreshIntervalMinutes = refreshParam === 5 ? 5 : refreshParam === 15 ? 15 : 0
 
   return {
     filters,
@@ -148,6 +152,7 @@ export const parseUrlState = (): UrlState => {
     time,
     snapshot,
     overlays,
+    refreshMinutes,
   }
 }
 
@@ -210,6 +215,9 @@ export const serializeUrlState = (state: UrlState) => {
 
   if (state.overlays?.groundTrack) {
     params.set('gt', '1')
+  }
+  if (state.refreshMinutes && state.refreshMinutes > 0) {
+    params.set('rf', state.refreshMinutes.toString())
   }
 
   const query = params.toString()

@@ -62,3 +62,5 @@ export type SnapshotState = {
 export type OverlayState = {
   groundTrack: boolean
 }
+
+export type RefreshIntervalMinutes = 0 | 5 | 15

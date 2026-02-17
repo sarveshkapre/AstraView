@@ -10,6 +10,7 @@ import type {
   TimeState,
   SnapshotPreset,
   TleCatalogGroup,
+  RefreshIntervalMinutes,
 } from './types'
 import { parseUrlState, serializeUrlState } from './utils/urlState'
 import { isValidTleObject } from './utils/orbit'
@@ -115,6 +116,7 @@ const App = () => {
   const [isExporting, setIsExporting] = useState(false)
   const [snapshotPreset, setSnapshotPreset] = useState<SnapshotPreset>('custom')
   const [exportScale, setExportScale] = useState<1 | 2>(1)
+  const [refreshIntervalMin, setRefreshIntervalMin] = useState<RefreshIntervalMinutes>(0)
   const [inspectedCount, setInspectedCount] = useState(0)
   const [shareCount, setShareCount] = useState(0)
   const [snapshotCount, setSnapshotCount] = useState(0)
@@ -171,6 +173,9 @@ const App = () => {
     }
     if (urlState.overlays) {
       setShowGroundTrack(urlState.overlays.groundTrack)
+    }
+    if (urlState.refreshMinutes !== undefined) {
+      setRefreshIntervalMin(urlState.refreshMinutes)
     }
   }, [])
 
@@ -274,6 +279,48 @@ const App = () => {
       cancelled = true
     }
   }, [filters.catalogGroup, isOnline])
+
+  useEffect(() => {
+    if (refreshIntervalMin === 0) return
+    if (!isOnline) return
+    let cancelled = false
+    let inFlight = false
+    const intervalMs = refreshIntervalMin * 60 * 1000
+
+    const tick = async () => {
+      if (cancelled || inFlight) return
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+      inFlight = true
+      try {
+        const result = await refreshTleObjects(filters.catalogGroup)
+        if (cancelled) return
+        const invalidCount = result.objects.filter((object) => !isValidTleObject(object)).length
+        setInvalidTleCount(invalidCount)
+        setTleObjects(result.objects)
+        setLastUpdated(result.fetchedAt)
+        setTleSourceMode(result.source)
+        setCatalogFormatMode(result.format)
+        setTleGroupLoaded(result.group)
+        setTleStatus('ready')
+        if (result.source === 'stale-cache') {
+          setTleMessage('Auto-refresh failed live fetch. Showing stale cached catalog.')
+        } else {
+          setTleMessage(`Auto-refresh updated ${result.groupLabel} catalog.`)
+        }
+      } catch {
+        if (cancelled) return
+        setTleMessage('Auto-refresh failed. Keeping previous catalog.')
+      } finally {
+        inFlight = false
+      }
+    }
+
+    const id = window.setInterval(tick, intervalMs)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [filters.catalogGroup, isOnline, refreshIntervalMin])
 
   useEffect(() => {
     if (timeState.mode !== 'live') {
@@ -464,6 +511,7 @@ const App = () => {
       overlays: {
         groundTrack: showGroundTrack,
       },
+      refreshMinutes: refreshIntervalMin,
     })
   }, [
     exportScale,
@@ -474,6 +522,7 @@ const App = () => {
     snapshotMode,
     snapshotPreset,
     snapshotWatermark,
+    refreshIntervalMin,
     viewState,
     timeState,
     watchlistIds,
@@ -1483,6 +1532,24 @@ const App = () => {
                         {entry.label}
                       </option>
                     ))}
+                  </select>
+                </label>
+                <label className="trust-row" htmlFor="refresh-interval">
+                  <span>Auto refresh</span>
+                  <select
+                    id="refresh-interval"
+                    value={refreshIntervalMin}
+                    onChange={(event) => {
+                      const next = Number(event.target.value) as RefreshIntervalMinutes
+                      recordMeaningfulAction()
+                      setRefreshIntervalMin(next)
+                      showToast(next === 0 ? 'Auto-refresh disabled.' : `Auto-refresh every ${next} minutes.`)
+                    }}
+                    disabled={tleStatus === 'loading'}
+                  >
+                    <option value={0}>Off</option>
+                    <option value={5}>5 min</option>
+                    <option value={15}>15 min</option>
                   </select>
                 </label>
               </div>

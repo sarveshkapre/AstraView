@@ -21,6 +21,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Trust panel action to clear per-group catalog cache and force a fresh next fetch.
 
+## [1.8.2] - 2026-02-17
+
+### Added
+- Configurable catalog auto-refresh interval (off/5/15 min), persisted in permalinks.
+
 ## [1.6.0] - 2026-02-10
 
 ### Added
